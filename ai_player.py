@@ -1,15 +1,6 @@
 import numpy as np
 import math
 
-# --- OPTYMALIZACJA 1: Globalna tablica logarytmów (Lookup Table) ---
-# Tworzymy tablicę, gdzie indeks to wartość kafelka (0..65536), a wartość to log2.
-# Dzięki temu unikamy wolnego np.log2() i iterowania.
-MAX_VAL = 65536
-LOG_LOOKUP = np.zeros(MAX_VAL + 1, dtype=np.float32)
-for i in range(1, 17): # 2^1 do 2^16
-    val = 2**i
-    if val <= MAX_VAL:
-        LOG_LOOKUP[val] = i
 
 class AIPlayer:
     def __init__(self):
@@ -17,11 +8,6 @@ class AIPlayer:
         # Kolejność: [Empty, MaxTile, Snake, Merge]
         self.weights = np.array([0.5, 0.5, 0.5, 0.5])
         self.alpha = 0.00025  # Znacznie mniejsza alpha dla stabilności
-
-
-        # Cache do zapamiętywania ocen planszy
-        # Klucz: bajty planszy, Wartość: wynik oceny
-        self.evaluation_cache = {}
 
         # Macierz Gradientu (Snake)
         base_gradient = np.array([

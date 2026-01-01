@@ -3,15 +3,17 @@ import math
 
 class AIPlayer:
     def __init__(self):
-        # Zmniejszono wagę Smoothness (1.5 -> 0.1), bo Monotonicity przejmuje główną rolę
+        # Wagi: [Empty, Mono, Smooth, Max, Corner]
         self.weights = np.array([10.0, 1.0, 0.1, 1.0, 2.0])
-        self.alpha = 0.001
+        self.alpha = 0.001 #Learning rate
 
     def get_features(self, board):
         empty = len(board[board == 0])
         m_max = np.max(board)
         log_max = math.log2(m_max) if m_max > 0 else 0
 
+
+        # Smoothness (różnica sąsiadów) i Monotonicity
         smoothness = 0
         monotonicity = 0
 

@@ -22,21 +22,19 @@ def get_shaped_reward(game_reward, board):
 
 # --- NOWA FUNKCJA POMOCNICZA ---
 def save_logs_to_csv(buffer, filename):
-    """Dopisuje bufor danych do pliku CSV."""
     file_exists = os.path.exists(filename)
-
     with open(filename, mode='a', newline='') as f:
         writer = csv.writer(f)
-        # Jeśli plik nie istnieje, dodajemy nagłówek
         if not file_exists:
+            # --- ZMIANA NAGŁÓWKA ---
             header = [
                 "Episode", "Score", "MaxTile", "Moves", "Duration_Sec",
-                "Weight_Empty", "Weight_Max", "Weight_Snake", "Weight_Merge"
+                "N_Empty", "N_Max", "N_Snake", "N_Merge",  # Normal Weights
+                "P_Empty", "P_Max", "P_Snake", "P_Merge"   # Panic Weights
             ]
             writer.writerow(header)
-
         writer.writerows(buffer)
-    print(f"--> Zapisano {len(buffer)} wpisów do historii treningu.")
+        print(f"--> Zapisano {len(buffer)} wpisów.")
 
 def train():
     ai = AIPlayer()
@@ -69,14 +67,18 @@ def train():
 
         # Annealing Alpha i Epsilon (Obliczany względem całkowitego postępu, ale z limitem)
         # Zakładamy, że po 5000 epokach parametry są już minimalne, więc używamy min/max
-        if current_episode < 5000:
-            progress = current_episode / 5000
-            ai.alpha = ALPHA_START - (ALPHA_START - ALPHA_END) * progress
-            epsilon = max(0.01, 0.2 - progress * 0.2)
+        if current_episode < 1000:
+            epsilon = 0.1 * (1 - (current_episode / 1000))
         else:
             # Dla długiego treningu utrzymujemy minimalne wartości
+            epsilon = 0.0
+
+        if current_episode < 2000:
+            # Liniowy spadek Alpha
+            progress_alpha = current_episode / 2000
+            ai.alpha = ALPHA_START - ((ALPHA_START - ALPHA_END) * progress_alpha)
+        else:
             ai.alpha = ALPHA_END
-            epsilon = 0.01
 
         sim_game = Game2048(game.size) # 1.1 tu wyciagniecie
 
@@ -110,15 +112,24 @@ def train():
             # Nauka
             reward_shaped = get_shaped_reward(raw_reward, next_state_real)
             features_state = ai.get_features(state)
-            current_v = np.dot(ai.weights, features_state)
+
+
+            # --- ZMIANA: Używamy metody evaluate zamiast surowego np.dot ---
+            # Dzięki temu trening uwzględnia "Smoothness" i Fazy w obliczaniu błędu
+            current_v = ai.evaluate(state)
+            # ---------------------------------------------------------------
 
             if done:
-                target = reward_shaped
+                target = reward_shaped - 30.0
             else:
                 next_v = ai.evaluate(next_state_real)
                 target = reward_shaped + GAMMA * next_v
 
             td_error = target - current_v
+
+            # Aktualizacja wag (Snake, Merge, Empty, Max)
+            # AI będzie próbowało dopasować te 4 wagi tak, aby skompensować
+            # wpływ naszej sztywnej "Gładkości".
             ai.update_weights(features_state, td_error)
 
             state = next_state_real.copy()
@@ -135,10 +146,16 @@ def train():
             np.max(game.board),
             moves_count,
             round(game_duration, 4),
-            round(ai.weights[0], 5),
-            round(ai.weights[1], 5),
-            round(ai.weights[2], 5),
-            round(ai.weights[3], 5)
+            # Wagi Normalne (N_)
+            round(ai.weights_normal[0], 5),
+            round(ai.weights_normal[1], 5),
+            round(ai.weights_normal[2], 5),
+            round(ai.weights_normal[3], 5),
+            # Wagi Paniki (P_)
+            round(ai.weights_panic[0], 5),
+            round(ai.weights_panic[1], 5),
+            round(ai.weights_panic[2], 5),
+            round(ai.weights_panic[3], 5)
         ]
         csv_buffer.append(log_entry)
         # -----------------------------------------------
@@ -167,7 +184,8 @@ def train():
             start_time = time.time()
 
             print(f"Ep: {current_episode} | Avg Score: {avg_score:.0f} | Avg MaxTile: {avg_max:.0f} | Time (50 ep): {duration:.2f}s")
-            print(f"Wagi: Empty={ai.weights[0]:.2f}, Max={ai.weights[1]:.2f}, Snake={ai.weights[2]:.2f}, Merge={ai.weights[3]:.2f}")
+            print(f"Wagi NORMAL: E={ai.weights_normal[0]:.2f}, M={ai.weights_normal[1]:.2f}, S={ai.weights_normal[2]:.2f}, Mrg={ai.weights_normal[3]:.2f}")
+            print(f"Wagi PANIC : E={ai.weights_panic[0]:.2f}, M={ai.weights_panic[1]:.2f}, S={ai.weights_panic[2]:.2f}, Mrg={ai.weights_panic[3]:.2f}")
             print("Ostatnia plansza:")
             print(game.board)
             print("-" * 40)

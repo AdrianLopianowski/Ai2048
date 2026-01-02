@@ -11,25 +11,28 @@ class Game2048App:
 
         # --- DODANO: Inicjalizacja AI ---
         self.ai = AIPlayer()
-        self.ai.load_model("ai_2048_save.pkl")
+
+        # Próba wczytania modelu
         loaded_episode = self.ai.load_model("ai_2048_save.pkl")
 
         # --- TEST PRAWDY: Co siedzi w głowie AI? ---
-        print("-" * 30)
+        print("-" * 40)
         if loaded_episode > 0:
             print(f"✅ SUKCES: Wczytano WYTRENOWANY model (Epizod {loaded_episode})")
         else:
             print("⚠️ UWAGA: Gram na DOMYŚLNYCH ustawieniach (Brak pliku)")
 
-        print(f"Aktualne wagi AI: {self.ai.weights}")
-        print("-" * 30)
+        # Wyświetlamy oba zestawy wag (Dual-Weights)
+        # Dzięki temu widzisz, czy AI ma "dwubiegunowość"
+        print(f"🧠 Wagi NORMAL (Spokój): {self.ai.weights_normal}")
+        print(f"🔥 Wagi PANIC  (Kryzys): {self.ai.weights_panic}")
+        print("-" * 40)
         # -------------------------------------------
 
         self.ai_running = False
-        self.sim_game = Game2048(size) # Do symulacji ruchów
-        # ------------------------------
+        self.sim_game = Game2048(size)  # Do symulacji ruchów
 
-        self.root.title("2048 - Tkinter (Animacje)")
+        self.root.title("2048 - Tkinter (AI Dual-Mode)")
         self.root.resizable(False, False)
 
         # --- Konfiguracja i stałe ---
@@ -46,7 +49,7 @@ class Game2048App:
 
         main_container = tk.Frame(root, bg=self.GAME_FRAME_BG)
         main_container.pack(fill="both", expand=True, padx=0, pady=0)
-        
+
         score_frame = tk.Frame(main_container, bg=self.GAME_FRAME_BG, padx=10, pady=10)
         score_frame.pack(side="top", fill="x")
 
@@ -54,15 +57,15 @@ class Game2048App:
         self.score_label = tk.Label(score_frame, text="0", font=('Helvetica', 20, 'bold'), fg='#776e65', bg=self.GAME_FRAME_BG)
         self.score_label.pack(side="left", padx=10)
 
-        self.canvas = tk.Canvas(main_container, 
-                                width=self.CANVAS_SIZE, 
-                                height=self.CANVAS_SIZE, 
-                                bg=self.BG_COLOR, 
+        self.canvas = tk.Canvas(main_container,
+                                width=self.CANVAS_SIZE,
+                                height=self.CANVAS_SIZE,
+                                bg=self.BG_COLOR,
                                 highlightthickness=0)
         self.canvas.pack(padx=10, pady=10)
-        
+
         self.tile_objects = {}
-        self.tile_count = 0 
+        self.tile_count = 0
 
         ctrl_frame = tk.Frame(main_container, bg=self.GAME_FRAME_BG)
         ctrl_frame.pack(pady=(0, 10))
@@ -76,18 +79,20 @@ class Game2048App:
     # --- KONFIGURACJA KOLORÓW ---
     def _get_colors(self):
         return {
-            0: {'bg': '#cdc1b4', 'fg': '#776e65', 'font_size': 32}, 
-            2: {'bg': '#eee4da', 'fg': '#776e65', 'font_size': 32}, 
+            0: {'bg': '#cdc1b4', 'fg': '#776e65', 'font_size': 32},
+            2: {'bg': '#eee4da', 'fg': '#776e65', 'font_size': 32},
             4: {'bg': '#ede0c8', 'fg': '#776e65', 'font_size': 32},
-            8: {'bg': '#f2b179', 'fg': 'white', 'font_size': 32}, 
-            16: {'bg': '#f59563', 'fg': 'white', 'font_size': 32}, 
+            8: {'bg': '#f2b179', 'fg': 'white', 'font_size': 32},
+            16: {'bg': '#f59563', 'fg': 'white', 'font_size': 32},
             32: {'bg': '#f67c5f', 'fg': 'white', 'font_size': 32},
-            64: {'bg': '#f65e3b', 'fg': 'white', 'font_size': 32}, 
-            128: {'bg': '#edcf72', 'fg': 'white', 'font_size': 28}, 
+            64: {'bg': '#f65e3b', 'fg': 'white', 'font_size': 32},
+            128: {'bg': '#edcf72', 'fg': 'white', 'font_size': 28},
             256: {'bg': '#edcc61', 'fg': 'white', 'font_size': 28},
-            512: {'bg': '#edc850', 'fg': 'white', 'font_size': 28}, 
-            1024: {'bg': '#edc53f', 'fg': 'white', 'font_size': 24}, 
-            2048: {'bg': '#edc22e', 'fg': 'white', 'font_size': 24}
+            512: {'bg': '#edc850', 'fg': 'white', 'font_size': 28},
+            1024: {'bg': '#edc53f', 'fg': 'white', 'font_size': 24},
+            2048: {'bg': '#edc22e', 'fg': 'white', 'font_size': 24},
+            4096: {'bg': '#a2d149', 'fg': 'white', 'font_size': 24},
+            8192: {'bg': '#3c3a32', 'fg': 'white', 'font_size': 24}
         }
 
     # --- TWORZENIE KONTROLEK ---
@@ -100,8 +105,7 @@ class Game2048App:
         )
         self.restart_btn.pack(side="left", padx=10)
 
-
-        # --- DODANO: Przycisk AI ---
+        # --- Przycisk AI ---
         self.ai_btn = tk.Button(
             ctrl_frame, text="🤖 Gra AI", command=self.toggle_ai,
             font=("Helvetica", 14, "bold"), bg="#4CAF50", fg="white",
@@ -109,7 +113,6 @@ class Game2048App:
             relief="flat", bd=0, padx=15, pady=5
         )
         self.ai_btn.pack(side="left", padx=10)
-        # ---------------------------
 
         self.quit_btn = tk.Button(
             ctrl_frame, text="❌ Wyjście", command=self.root.destroy,
@@ -134,21 +137,21 @@ class Game2048App:
         x = col * (self.TILE_SIZE + self.PADDING) + self.PADDING
         y = row * (self.TILE_SIZE + self.PADDING) + self.PADDING
         return x, y
-    
+
     # --- RYSOWANIE KAFELKA ---
     def _draw_tile(self, value, col, row, tile_id=None, is_new=False):
         x, y = self._get_coords(col, row)
         colors = self.TILE_COLORS.get(value, self.TILE_COLORS[0])
-        
+
         if tile_id is not None and self.canvas.find_withtag(f"tile_{tile_id}"):
-             self.canvas.delete(f"tile_{tile_id}")
+            self.canvas.delete(f"tile_{tile_id}")
 
         rect_id = self.canvas.create_rectangle(
             x, y, x + self.TILE_SIZE, y + self.TILE_SIZE,
             fill=colors['bg'], outline='',
             tags=f"tile_{tile_id}" if tile_id is not None else "new_tile"
         )
-        
+
         text_content = str(value) if value else ""
         text_id = self.canvas.create_text(
             x + self.TILE_SIZE / 2, y + self.TILE_SIZE / 2,
@@ -156,12 +159,12 @@ class Game2048App:
             font=('Helvetica', colors['font_size'], 'bold'),
             tags=f"tile_{tile_id}" if tile_id is not None else "new_tile"
         )
-        
+
         if tile_id is None:
             self.tile_count += 1
             tile_id = self.tile_count
             self.tile_objects[tile_id] = [value, rect_id, text_id, row, col]
-        
+
         self.canvas.tag_raise(rect_id)
         self.canvas.tag_raise(text_id)
 
@@ -173,14 +176,14 @@ class Game2048App:
             return
 
         self.animation_in_progress = True
-        
+
         start_x, start_y = self._get_coords(start_pos[1], start_pos[0])
         end_x, end_y = self._get_coords(end_pos[1], end_pos[0])
-        
+
         bbox = self.canvas.bbox(self.tile_objects[tile_id][1])
-        current_x = (bbox[0] + bbox[2]) / 2 - self.TILE_SIZE / 2 
-        current_y = (bbox[1] + bbox[3]) / 2 - self.TILE_SIZE / 2 
-        
+        current_x = (bbox[0] + bbox[2]) / 2 - self.TILE_SIZE / 2
+        current_y = (bbox[1] + bbox[3]) / 2 - self.TILE_SIZE / 2
+
         dx = end_x - current_x
         dy = end_y - current_y
 
@@ -191,44 +194,41 @@ class Game2048App:
             if current_step < steps:
                 move_x = dx / steps
                 move_y = dy / steps
-                
+
                 self.canvas.move(f"tile_{tile_id}", move_x, move_y)
 
                 self.root.after(delay, lambda: step(current_step + 1))
             else:
                 self.animation_in_progress = False
-                self.update_board(animate=False) 
-        
+                self.update_board(animate=False)
+
         step(0)
 
     # --- ODSWIEŻANIE PLANSZY ---
     def update_board(self, animate=True):
         self.score_label.config(text=str(self.game.score))
-        
-        new_tile_objects = {}
-        
-        self.canvas.delete("all")
-        self.draw_grid() 
-        self.tile_objects = {} 
-        self.tile_count = 0 
 
-        
+        new_tile_objects = {}
+
+        self.canvas.delete("all")
+        self.draw_grid()
+        self.tile_objects = {}
+        self.tile_count = 0
+
         for r in range(self.size):
             for c in range(self.size):
                 value = int(self.game.board[r][c])
                 if value != 0:
                     tile_id = self._draw_tile(value, c, r)
                     new_tile_objects[(r, c)] = tile_id
-        
-        
+
         self.tile_objects = new_tile_objects
 
     # --- HANDLER KLUCZY ---
     def key_handler(self, event):
-        # --- ZMIANA: Blokada klawiszy gdy gra AI ---
+        # Blokada klawiszy gdy gra AI
         if self.game_over_shown or self.animation_in_progress or self.ai_running:
             return
-        # -------------------------------------------
 
         mapping = {
             'Up': 'up', 'Down': 'down', 'Left': 'left', 'Right': 'right',
@@ -236,12 +236,10 @@ class Game2048App:
         }
 
         key = event.keysym
-        # Obsługa 'w', 's', 'a', 'd' (event.char) oraz strzałek (event.keysym)
         if key not in mapping and event.char in mapping:
             key = event.char
 
         if key in mapping:
-            # --- POPRAWKA TUTAJ: Odbieramy 4 wartości ---
             _, _, done, changed = self.game.move(mapping[key])
 
             if changed:
@@ -249,14 +247,13 @@ class Game2048App:
 
             if done:
                 self.game_over_shown = True
-                self.show_game_over()
+                self.show_popup()
 
     # --- RESET GRY ---
     def restart_game(self):
-        # --- DODANO: Stop AI przy restarcie ---
+        # Stop AI przy restarcie
         self.ai_running = False
         self.ai_btn.config(text="🤖 Gra AI", bg="#4CAF50")
-        # --------------------------------------
 
         if self.game_over_popup:
             self.game_over_popup.destroy()
@@ -301,7 +298,7 @@ class Game2048App:
         self.game_over_popup = popup
 
 
-    # --- NOWE METODY: Logika AI ---
+    # --- METODY AI ---
     def toggle_ai(self):
         if self.ai_running:
             # Zatrzymaj
@@ -323,7 +320,7 @@ class Game2048App:
         valid_moves = self.game.get_valid_moves()
         if not valid_moves:
             self.game_over_shown = True
-            self.show_popup() # Tutaj była nazwa show_game_over w poprzednim kodzie, upewnij się czy masz show_popup czy show_game_over
+            self.show_popup()
             return
 
         # 2. Wybierz najlepszy ruch (1-step Lookahead)
@@ -332,7 +329,11 @@ class Game2048App:
 
         for move in valid_moves:
             self.sim_game.board = state.copy()
+            # AI używa move_without_random, by zobaczyć przyszły stan
             next_s_sim, _, _ = self.sim_game.move_without_random(move)
+
+            # AIPlayer (get_expected_value -> evaluate) sam decyduje,
+            # których wag (Normal/Panic) użyć na podstawie planszy next_s_sim
             v = self.ai.get_expected_value(next_s_sim)
 
             if v > best_v:
@@ -349,10 +350,10 @@ class Game2048App:
                 self.ai_running = False
                 self.ai_btn.config(text="🤖 Gra AI", bg="#4CAF50")
                 self.game_over_shown = True
-                self.show_popup() # Sprawdź nazwę metody popupu w swoim kodzie (show_popup vs show_game_over)
+                self.show_popup()
                 return
 
-        # 4. Zaplanuj kolejny krok (np. za 50ms - szybka gra)
+        # 4. Zaplanuj kolejny krok (50ms)
         self.root.after(50, self.run_ai_step)
 
 

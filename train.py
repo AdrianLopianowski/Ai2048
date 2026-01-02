@@ -15,9 +15,20 @@ EPISODES = 5000
 LOG_FILE = "training_history.csv"
 
 def get_shaped_reward(game_reward, board):
+    # Standardowa nagroda (logarytmiczna)
     if game_reward == 0:
-        return 0
-    return math.log2(game_reward)
+        reward = 0
+    else:
+        reward = math.log2(game_reward)
+
+    # === NOWOŚĆ: Bonus za Aktywność (Incentive) ===
+    # Jeśli w tym ruchu zdobyłeś punkty (czyli zrobiłeś merge),
+    # dostajesz ekstra bonus +1.0.
+    # To sygnał dla AI: "Nie stój w miejscu, łącz klocki!"
+    if game_reward > 0:
+        reward += 1.0
+
+    return reward
 
 
 # --- NOWA FUNKCJA POMOCNICZA ---
@@ -65,13 +76,21 @@ def train():
         game_start_time = time.time()
         moves_count = 0
 
+        # Dynamiczna Alpha
+        # Jeśli ostatnia gra była słaba (poniżej średniej np. 8000),
+        # zwiększamy alphę, żeby AI mocniej zmieniło swoje myślenie.
+        if game.score < 8000 and current_episode > 1000:
+            ai.alpha = 0.001  # Duży krok (szok)
+        else:
+            ai.alpha = 0.0001 # Mały krok (szlifowanie)
+
         # Annealing Alpha i Epsilon (Obliczany względem całkowitego postępu, ale z limitem)
         # Zakładamy, że po 5000 epokach parametry są już minimalne, więc używamy min/max
         if current_episode < 1000:
             epsilon = 0.1 * (1 - (current_episode / 1000))
         else:
             # Dla długiego treningu utrzymujemy minimalne wartości
-            epsilon = 0.0
+            epsilon = 0.003
 
         if current_episode < 2000:
             # Liniowy spadek Alpha
@@ -95,7 +114,7 @@ def train():
                 #sim_game = Game2048(game.size) 1.1 wyciagniecie przed petle dla optymalizacji
 
                 for move in valid_moves:
-                    sim_game.board = state.copy()
+                    sim_game.board = state
                     next_s_sim, _, _ = sim_game.move_without_random(move)
 
                     # 1-step Lookahead z Expectimaxem

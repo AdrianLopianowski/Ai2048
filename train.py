@@ -1,5 +1,3 @@
-from sympy.abc import epsilon
-
 from game_2048 import Game2048
 from ai_player import AIPlayer
 import numpy as np

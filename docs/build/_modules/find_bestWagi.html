@@ -1,0 +1,187 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>find_bestWagi &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=331e28ce"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=2827c288"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="../genindex.html" />
+    <link rel="search" title="Szukaj" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Kod modułu</a></li>
+      <li class="breadcrumb-item active">find_bestWagi</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Kod źródłowy modułu find_bestWagi</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="c1"># --- KONFIGURACJA ---</span>
+<span class="n">CSV_FILE</span> <span class="o">=</span> <span class="s2">&quot;training_history.csv&quot;</span>
+<span class="n">WINDOW_SIZE</span> <span class="o">=</span> <span class="mi">50</span>  <span class="c1"># Szukamy najlepszej średniej z 50 gier (najstabilniejszy moment)</span>
+
+<div class="viewcode-block" id="analyze_best_performance">
+<a class="viewcode-back" href="../index.html#find_bestWagi.analyze_best_performance">[dokumentacja]</a>
+<span class="k">def</span> <span class="nf">analyze_best_performance</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analizuje plik CSV w poszukiwaniu najlepszego momentu treningu.</span>
+<span class="sd">    </span>
+<span class="sd">    Znajduje epizod z najwyższą średnią kroczącą wyników (window=50),</span>
+<span class="sd">    a następnie wypisuje gotowy kod Pythona z wagami do wklejenia w `ai_player.py`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">CSV_FILE</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Błąd: Nie znaleziono pliku </span><span class="si">{</span><span class="n">CSV_FILE</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">CSV_FILE</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Błąd odczytu pliku: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="n">df</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Plik jest pusty.&quot;</span><span class="p">)</span>
+        <span class="k">return</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Analiza </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">}</span><span class="s2"> epizodów... Szukam najlepszej konfiguracji...&quot;</span><span class="p">)</span>
+
+    <span class="c1"># 1. Obliczamy średnią kroczącą</span>
+    <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Rolling_Score&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="n">window</span><span class="o">=</span><span class="n">WINDOW_SIZE</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+    <span class="c1"># 2. Znajdujemy indeks najlepszej średniej</span>
+    <span class="n">best_idx</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Rolling_Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+
+    <span class="c1"># Zabezpieczenie na wypadek krótkiego treningu</span>
+    <span class="k">if</span> <span class="n">pd</span><span class="o">.</span><span class="n">isna</span><span class="p">(</span><span class="n">best_idx</span><span class="p">):</span>
+        <span class="n">best_idx</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s1">&#39;Score&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">idxmax</span><span class="p">()</span>
+        <span class="n">best_val</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">best_idx</span><span class="p">,</span> <span class="s1">&#39;Score&#39;</span><span class="p">]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="s2">&quot;Najlepszy pojedynczy wynik&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">best_val</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">best_idx</span><span class="p">,</span> <span class="s1">&#39;Rolling_Score&#39;</span><span class="p">]</span>
+        <span class="n">desc</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Najlepsza średnia z </span><span class="si">{</span><span class="n">WINDOW_SIZE</span><span class="si">}</span><span class="s2"> gier&quot;</span>
+
+    <span class="n">best_row</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">best_idx</span><span class="p">]</span>
+    <span class="n">episode</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">best_row</span><span class="p">[</span><span class="s1">&#39;Episode&#39;</span><span class="p">])</span>
+
+    <span class="c1"># 3. Pobieranie wag</span>
+    <span class="c1"># Kolejność musi być zgodna z __init__: [Empty, MaxTile, Gradient, Merge, Corner, Neighbor]</span>
+
+    <span class="n">cols_norm</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;N_Empty&#39;</span><span class="p">,</span> <span class="s1">&#39;N_Max&#39;</span><span class="p">,</span> <span class="s1">&#39;N_Snake&#39;</span><span class="p">,</span> <span class="s1">&#39;N_Merge&#39;</span><span class="p">,</span> <span class="s1">&#39;N_Corner&#39;</span><span class="p">,</span> <span class="s1">&#39;N_Neigh&#39;</span><span class="p">]</span>
+    <span class="n">cols_panic</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;P_Empty&#39;</span><span class="p">,</span> <span class="s1">&#39;P_Max&#39;</span><span class="p">,</span> <span class="s1">&#39;P_Snake&#39;</span><span class="p">,</span> <span class="s1">&#39;P_Merge&#39;</span><span class="p">,</span> <span class="s1">&#39;P_Corner&#39;</span><span class="p">,</span> <span class="s1">&#39;P_Neigh&#39;</span><span class="p">]</span>
+
+    <span class="c1"># Wyciągamy wartości do zwykłej listy pythonowej</span>
+    <span class="n">vals_norm</span> <span class="o">=</span> <span class="p">[</span><span class="n">best_row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols_norm</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+    <span class="n">vals_panic</span> <span class="o">=</span> <span class="p">[</span><span class="n">best_row</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cols_panic</span> <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="p">]</span>
+
+    <span class="c1"># Jeśli brakuje kolumn (np. stary plik CSV), wypełnij zerami</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals_norm</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span> <span class="n">vals_norm</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vals_panic</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span> <span class="n">vals_panic</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="mi">6</span>
+
+    <span class="c1"># 4. Formatowanie stringów (Czysty format bez dtype)</span>
+    <span class="k">def</span> <span class="nf">format_list</span><span class="p">(</span><span class="n">lst</span><span class="p">):</span>
+        <span class="c1"># Formatowanie: 4 miejsca po przecinku, oddzielone przecinkami</span>
+        <span class="k">return</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">x</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">])</span>
+
+    <span class="n">str_norm</span> <span class="o">=</span> <span class="n">format_list</span><span class="p">(</span><span class="n">vals_norm</span><span class="p">)</span>
+    <span class="n">str_panic</span> <span class="o">=</span> <span class="n">format_list</span><span class="p">(</span><span class="n">vals_panic</span><span class="p">)</span>
+
+    <span class="c1"># 5. Wyświetlanie wyniku</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🏆 ZNALEZIONO OPTIMUM (Epizod: </span><span class="si">{</span><span class="n">episode</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;📊 </span><span class="si">{</span><span class="n">desc</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">best_val</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- KOD DO WKLEJENIA (ai_player.py) ---</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;self.weights_normal = np.array([</span><span class="si">{</span><span class="n">str_norm</span><span class="si">}</span><span class="s2">])&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;self.weights_panic  = np.array([</span><span class="si">{</span><span class="n">str_panic</span><span class="si">}</span><span class="s2">])&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span><span class="o">*</span><span class="mi">60</span><span class="p">)</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">analyze_best_performance</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

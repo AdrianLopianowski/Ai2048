@@ -1,0 +1,381 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game_2048 &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=331e28ce"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=2827c288"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="../genindex.html" />
+    <link rel="search" title="Szukaj" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Kod modułu</a></li>
+      <li class="breadcrumb-item active">game_2048</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Kod źródłowy modułu game_2048</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<div class="viewcode-block" id="Game2048">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048">[dokumentacja]</a>
+<span class="k">class</span> <span class="nc">Game2048</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Główna klasa logiki gry 2048.</span>
+<span class="sd">    </span>
+<span class="sd">    Zarządza stanem planszy, wykonuje ruchy, dodaje losowe kafelki</span>
+<span class="sd">    i sprawdza warunki końca gry.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        size (int): Rozmiar planszy (domyślnie 4x4).</span>
+<span class="sd">        board (np.ndarray): Macierz NxN reprezentująca planszę gry.</span>
+<span class="sd">        score (int): Aktualny wynik punktowy gry.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Game2048.reset">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.reset">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">reset</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Resetuje grę do stanu początkowego.</span>
+
+<span class="sd">        Zeruje planszę i wynik, a następnie dodaje dwa losowe kafelki startowe.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: Kopia planszy (stan początkowy).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_random_tile</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_add_random_tile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_add_random_tile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Dodaje losowy kafelek (2 lub 4) na losowym pustym polu.</span>
+
+<span class="sd">        Prawdopodobieństwo: 90% na &#39;2&#39;, 10% na &#39;4&#39;.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True jeśli dodano kafelek, False jeśli brak miejsca.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">empty_cells</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">empty_cells</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">empty_cells</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span> <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.1</span> <span class="k">else</span> <span class="mi">2</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">_compress</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Przesuwa niezerowe elementy na początek listy (implementacja ruchu).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            row (list): Wiersz planszy.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list: Nowy wiersz z przesuniętymi elementami.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_row</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">row</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">new_row</span> <span class="o">+=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">new_row</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">new_row</span>
+
+    <span class="k">def</span> <span class="nf">_merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Łączy sąsiadujące identyczne klocki w wierszu.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            row (list): Wiersz po operacji compress.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (zmieniony_wiersz, zdobyte_punkty)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="mi">2</span>
+                <span class="n">points</span> <span class="o">+=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>  <span class="c1"># Tylko obliczamy, NIE dodajemy do self.score</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">row</span><span class="p">,</span> <span class="n">points</span>
+
+    <span class="k">def</span> <span class="nf">_move_row_left</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wykonuje pełną sekwencję ruchu w lewo dla jednego wiersza.</span>
+
+<span class="sd">        Sekwencja: compress -&gt; merge -&gt; compress.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            row (np.ndarray): Pojedynczy wiersz planszy.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (przetworzony_wiersz, punkty_za_ten_wiersz)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">curr_row</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+        <span class="n">curr_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compress</span><span class="p">(</span><span class="n">curr_row</span><span class="p">)</span>
+        <span class="n">curr_row</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_merge</span><span class="p">(</span><span class="n">curr_row</span><span class="p">)</span>
+        <span class="n">curr_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_compress</span><span class="p">(</span><span class="n">curr_row</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">curr_row</span><span class="p">,</span> <span class="n">points</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_move_result</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Oblicza deterministyczny wynik ruchu (bez losowania nowego kafelka).</span>
+<span class="sd">        </span>
+<span class="sd">        Używana zarówno przez grę właściwą, jak i symulacje AI.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direction (str): Kierunek ruchu (&#39;left&#39;, &#39;up&#39;, &#39;right&#39;, &#39;down&#39;).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (nowa_plansza, nagroda_za_ruch, czy_zaszla_zmiana)</span>
+<span class="sd">        </span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: Jeśli podano nieznany kierunek.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rotations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">direction</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rotations</span><span class="p">:</span> <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Błąd kierunku&quot;</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">rotations</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span>
+
+        <span class="c1"># Operujemy na widoku (szybkie, brak deepcopy)</span>
+        <span class="n">board_working</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">new_rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">step_reward</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">board_working</span><span class="p">:</span>
+            <span class="n">processed</span><span class="p">,</span> <span class="n">points</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_move_row_left</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="n">new_rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">processed</span><span class="p">)</span>
+            <span class="n">step_reward</span> <span class="o">+=</span> <span class="n">points</span>
+
+        <span class="n">new_board</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">new_rows</span><span class="p">)</span>
+        <span class="n">new_board</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">new_board</span><span class="p">,</span> <span class="n">k</span><span class="o">=-</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">changed</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">,</span> <span class="n">new_board</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">new_board</span><span class="p">,</span> <span class="n">step_reward</span><span class="p">,</span> <span class="n">changed</span>
+
+<div class="viewcode-block" id="Game2048.move_without_random">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.move_without_random">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">move_without_random</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Symulacja ruchu dla AI: przesuwa planszę, ale NIE dodaje losowego kafelka.</span>
+
+<span class="sd">        Metoda służy do &quot;wyobrażenia sobie&quot; stanu po ruchu (Lookahead).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direction (str): Kierunek ruchu.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (nowa_plansza, nagroda, czy_zmiana)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_board</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_move_result</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">new_board</span>
+        <span class="c1"># W symulacji nie aktualizujemy self.score, bo to tylko &#39;wyobrażenie&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">changed</span></div>
+
+
+<div class="viewcode-block" id="Game2048.move">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.move">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wykonuje ruch w prawdziwej grze.</span>
+<span class="sd">        </span>
+<span class="sd">        1. Przesuwa klocki i łączy je.</span>
+<span class="sd">        2. Aktualizuje wynik.</span>
+<span class="sd">        3. Dodaje losowy kafelek (jeśli ruch był ważny).</span>
+<span class="sd">        4. Sprawdza czy gra się skończyła.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direction (str): Kierunek ruchu (w/s/a/d lub nazwy pełne).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (kopia_planszy, nagroda, czy_koniec, czy_zmieniono)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">new_board</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_move_result</span><span class="p">(</span><span class="n">direction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">new_board</span>
+
+        <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">score</span> <span class="o">+=</span> <span class="n">reward</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_random_tile</span><span class="p">()</span>
+
+        <span class="n">done</span> <span class="o">=</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_can_move</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">changed</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_can_move</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sprawdza czy możliwy jest jakikolwiek ruch na planszy.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True jeśli gra może trwać dalej, False jeśli Game Over.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">]:</span>
+                    <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+
+<div class="viewcode-block" id="Game2048.can_move_direction">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.can_move_direction">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">can_move_direction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Szybkie sprawdzenie czy ruch w danym kierunku jest legalny.</span>
+<span class="sd">        </span>
+<span class="sd">        Zoptymalizowane pod kątem wydajności (używa widoków numpy bez kopiowania).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            direction (str): Kierunek do sprawdzenia.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True jeśli ruch spowoduje zmianę stanu planszy.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rotations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;left&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">rotations</span><span class="p">[</span><span class="n">direction</span><span class="p">]</span>
+        <span class="c1"># rot90 zwraca widok (view) - operacja O(1), brak alokacji pamięci</span>
+        <span class="n">board_view</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">board_view</span><span class="p">:</span>
+            <span class="n">prev</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">prev</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Oznaczamy, że widzieliśmy puste pole</span>
+                <span class="k">elif</span> <span class="n">prev</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span> <span class="c1"># Liczba po zerze -&gt; przesunięcie</span>
+                <span class="k">elif</span> <span class="n">x</span> <span class="o">==</span> <span class="n">prev</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="kc">True</span> <span class="c1"># Dwie takie same obok siebie -&gt; łączenie</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">prev</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="Game2048.get_valid_moves">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.get_valid_moves">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">get_valid_moves</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Zwraca listę wszystkich legalnych ruchów w danym stanie.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            list[str]: Lista kierunków np. [&#39;left&#39;, &#39;up&#39;].</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span> <span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;down&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">can_move_direction</span><span class="p">(</span><span class="n">d</span><span class="p">)]</span></div>
+
+
+<div class="viewcode-block" id="Game2048.print_board">
+<a class="viewcode-back" href="../index.html#game_2048.Game2048.print_board">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">print_board</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wypisuje obecny stan planszy i wynik w konsoli.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">board</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Score: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">score</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span></div>
+</div>
+
+
+
+
+
+<span class="c1"># ===== Przykładowe uruchomienie =====</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">game</span> <span class="o">=</span> <span class="n">Game2048</span><span class="p">(</span><span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">game</span><span class="o">.</span><span class="n">print_board</span><span class="p">()</span>
+
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">move</span> <span class="o">=</span> <span class="nb">input</span><span class="p">(</span><span class="s2">&quot;Ruch (w/s/a/d): &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">move</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Nieprawidłowy ruch!&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># ZMIANA: Odbieramy 4 wartości zamiast 3</span>
+        <span class="n">board</span><span class="p">,</span> <span class="n">reward</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">mapping</span><span class="p">[</span><span class="n">move</span><span class="p">])</span>
+        <span class="n">game</span><span class="o">.</span><span class="n">print_board</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Koniec gry!&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

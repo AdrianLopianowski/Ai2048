@@ -1,0 +1,800 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dokumentacja Projektu 2048 AI &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=331e28ce"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="_static/translations.js?v=2827c288"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="genindex.html" />
+    <link rel="search" title="Szukaj" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">Dokumentacja Projektu 2048 AI</a><ul>
+<li><a class="reference internal" href="#module-game_2048">Silnik i Interfejs Gry</a><ul>
+<li><a class="reference internal" href="#game_2048.Game2048"><code class="docutils literal notranslate"><span class="pre">Game2048</span></code></a><ul>
+<li><a class="reference internal" href="#game_2048.Game2048.size"><code class="docutils literal notranslate"><span class="pre">Game2048.size</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.board"><code class="docutils literal notranslate"><span class="pre">Game2048.board</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.score"><code class="docutils literal notranslate"><span class="pre">Game2048.score</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.can_move_direction"><code class="docutils literal notranslate"><span class="pre">Game2048.can_move_direction()</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.get_valid_moves"><code class="docutils literal notranslate"><span class="pre">Game2048.get_valid_moves()</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.move"><code class="docutils literal notranslate"><span class="pre">Game2048.move()</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.move_without_random"><code class="docutils literal notranslate"><span class="pre">Game2048.move_without_random()</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.print_board"><code class="docutils literal notranslate"><span class="pre">Game2048.print_board()</span></code></a></li>
+<li><a class="reference internal" href="#game_2048.Game2048.reset"><code class="docutils literal notranslate"><span class="pre">Game2048.reset()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#game_gui.Game2048App"><code class="docutils literal notranslate"><span class="pre">Game2048App</span></code></a><ul>
+<li><a class="reference internal" href="#game_gui.Game2048App.root"><code class="docutils literal notranslate"><span class="pre">Game2048App.root</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.game"><code class="docutils literal notranslate"><span class="pre">Game2048App.game</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.ai"><code class="docutils literal notranslate"><span class="pre">Game2048App.ai</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.canvas"><code class="docutils literal notranslate"><span class="pre">Game2048App.canvas</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.animate_move"><code class="docutils literal notranslate"><span class="pre">Game2048App.animate_move()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.draw_grid"><code class="docutils literal notranslate"><span class="pre">Game2048App.draw_grid()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.key_handler"><code class="docutils literal notranslate"><span class="pre">Game2048App.key_handler()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.restart_game"><code class="docutils literal notranslate"><span class="pre">Game2048App.restart_game()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.run_ai_step"><code class="docutils literal notranslate"><span class="pre">Game2048App.run_ai_step()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.show_popup"><code class="docutils literal notranslate"><span class="pre">Game2048App.show_popup()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.start_1k_benchmark"><code class="docutils literal notranslate"><span class="pre">Game2048App.start_1k_benchmark()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.toggle_ai"><code class="docutils literal notranslate"><span class="pre">Game2048App.toggle_ai()</span></code></a></li>
+<li><a class="reference internal" href="#game_gui.Game2048App.update_board"><code class="docutils literal notranslate"><span class="pre">Game2048App.update_board()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-ai_player">Sztuczna Inteligencja i Trenowanie</a><ul>
+<li><a class="reference internal" href="#ai_player.AIPlayer"><code class="docutils literal notranslate"><span class="pre">AIPlayer</span></code></a><ul>
+<li><a class="reference internal" href="#ai_player.AIPlayer.weights_normal"><code class="docutils literal notranslate"><span class="pre">AIPlayer.weights_normal</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.weights_panic"><code class="docutils literal notranslate"><span class="pre">AIPlayer.weights_panic</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.alpha"><code class="docutils literal notranslate"><span class="pre">AIPlayer.alpha</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.gradients"><code class="docutils literal notranslate"><span class="pre">AIPlayer.gradients</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.evaluate"><code class="docutils literal notranslate"><span class="pre">AIPlayer.evaluate()</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.get_expected_value"><code class="docutils literal notranslate"><span class="pre">AIPlayer.get_expected_value()</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.get_features"><code class="docutils literal notranslate"><span class="pre">AIPlayer.get_features()</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.load_model"><code class="docutils literal notranslate"><span class="pre">AIPlayer.load_model()</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.save_model"><code class="docutils literal notranslate"><span class="pre">AIPlayer.save_model()</span></code></a></li>
+<li><a class="reference internal" href="#ai_player.AIPlayer.update_weights"><code class="docutils literal notranslate"><span class="pre">AIPlayer.update_weights()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#train.get_shaped_reward"><code class="docutils literal notranslate"><span class="pre">get_shaped_reward()</span></code></a></li>
+<li><a class="reference internal" href="#train.save_logs_to_csv"><code class="docutils literal notranslate"><span class="pre">save_logs_to_csv()</span></code></a></li>
+<li><a class="reference internal" href="#train.train"><code class="docutils literal notranslate"><span class="pre">train()</span></code></a></li>
+<li><a class="reference internal" href="#find_bestWagi.analyze_best_performance"><code class="docutils literal notranslate"><span class="pre">analyze_best_performance()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-benchmark_module">Analiza i Wykresy</a><ul>
+<li><a class="reference internal" href="#benchmark_module.Benchmark"><code class="docutils literal notranslate"><span class="pre">Benchmark</span></code></a><ul>
+<li><a class="reference internal" href="#benchmark_module.Benchmark.ai"><code class="docutils literal notranslate"><span class="pre">Benchmark.ai</span></code></a></li>
+<li><a class="reference internal" href="#benchmark_module.Benchmark.games_to_run"><code class="docutils literal notranslate"><span class="pre">Benchmark.games_to_run</span></code></a></li>
+<li><a class="reference internal" href="#benchmark_module.Benchmark.output_folder"><code class="docutils literal notranslate"><span class="pre">Benchmark.output_folder</span></code></a></li>
+<li><a class="reference internal" href="#benchmark_module.Benchmark.get_next_base_filename"><code class="docutils literal notranslate"><span class="pre">Benchmark.get_next_base_filename()</span></code></a></li>
+<li><a class="reference internal" href="#benchmark_module.Benchmark.run"><code class="docutils literal notranslate"><span class="pre">Benchmark.run()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#benchmark_module.run_single_game"><code class="docutils literal notranslate"><span class="pre">run_single_game()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.generate_charts"><code class="docutils literal notranslate"><span class="pre">generate_charts()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.plot_just_scores"><code class="docutils literal notranslate"><span class="pre">plot_just_scores()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.plot_moves_only"><code class="docutils literal notranslate"><span class="pre">plot_moves_only()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.plot_tiles_split"><code class="docutils literal notranslate"><span class="pre">plot_tiles_split()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.plot_weights"><code class="docutils literal notranslate"><span class="pre">plot_weights()</span></code></a></li>
+<li><a class="reference internal" href="#plot_charts.setup_style"><code class="docutils literal notranslate"><span class="pre">setup_style()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Dokumentacja Projektu 2048 AI</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> Zobacz źródło strony</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="dokumentacja-projektu-2048-ai">
+<h1>Dokumentacja Projektu 2048 AI<a class="headerlink" href="#dokumentacja-projektu-2048-ai" title="Link to this heading"></a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<section id="module-game_2048">
+<span id="silnik-i-interfejs-gry"></span><h2>Silnik i Interfejs Gry<a class="headerlink" href="#module-game_2048" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="game_2048.Game2048">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">game_2048.</span></span><span class="sig-name descname"><span class="pre">Game2048</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048" title="Link to this definition"></a></dt>
+<dd><p>Klasy bazowe: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Główna klasa logiki gry 2048.</p>
+<p>Zarządza stanem planszy, wykonuje ruchy, dodaje losowe kafelki
+i sprawdza warunki końca gry.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_2048.Game2048.size">
+<span class="sig-name descname"><span class="pre">size</span></span><a class="headerlink" href="#game_2048.Game2048.size" title="Link to this definition"></a></dt>
+<dd><p>Rozmiar planszy (domyślnie 4x4).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_2048.Game2048.board">
+<span class="sig-name descname"><span class="pre">board</span></span><a class="headerlink" href="#game_2048.Game2048.board" title="Link to this definition"></a></dt>
+<dd><p>Macierz NxN reprezentująca planszę gry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_2048.Game2048.score">
+<span class="sig-name descname"><span class="pre">score</span></span><a class="headerlink" href="#game_2048.Game2048.score" title="Link to this definition"></a></dt>
+<dd><p>Aktualny wynik punktowy gry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.can_move_direction">
+<span class="sig-name descname"><span class="pre">can_move_direction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.can_move_direction"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.can_move_direction" title="Link to this definition"></a></dt>
+<dd><p>Szybkie sprawdzenie czy ruch w danym kierunku jest legalny.</p>
+<p>Zoptymalizowane pod kątem wydajności (używa widoków numpy bez kopiowania).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – Kierunek do sprawdzenia.</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>True jeśli ruch spowoduje zmianę stanu planszy.</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.get_valid_moves">
+<span class="sig-name descname"><span class="pre">get_valid_moves</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.get_valid_moves"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.get_valid_moves" title="Link to this definition"></a></dt>
+<dd><p>Zwraca listę wszystkich legalnych ruchów w danym stanie.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Zwraca<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Lista kierunków np. [«left», «up»].</p>
+</dd>
+<dt class="field-even">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-even"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.move">
+<span class="sig-name descname"><span class="pre">move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.move"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.move" title="Link to this definition"></a></dt>
+<dd><p>Wykonuje ruch w prawdziwej grze.</p>
+<ol class="arabic simple">
+<li><p>Przesuwa klocki i łączy je.</p></li>
+<li><p>Aktualizuje wynik.</p></li>
+<li><p>Dodaje losowy kafelek (jeśli ruch był ważny).</p></li>
+<li><p>Sprawdza czy gra się skończyła.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – Kierunek ruchu (w/s/a/d lub nazwy pełne).</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>(kopia_planszy, nagroda, czy_koniec, czy_zmieniono)</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.move_without_random">
+<span class="sig-name descname"><span class="pre">move_without_random</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.move_without_random"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.move_without_random" title="Link to this definition"></a></dt>
+<dd><p>Symulacja ruchu dla AI: przesuwa planszę, ale NIE dodaje losowego kafelka.</p>
+<p>Metoda służy do „wyobrażenia sobie” stanu po ruchu (Lookahead).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>direction</strong> (<em>str</em>) – Kierunek ruchu.</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>(nowa_plansza, nagroda, czy_zmiana)</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.print_board">
+<span class="sig-name descname"><span class="pre">print_board</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.print_board"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.print_board" title="Link to this definition"></a></dt>
+<dd><p>Wypisuje obecny stan planszy i wynik w konsoli.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_2048.Game2048.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_2048.html#Game2048.reset"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_2048.Game2048.reset" title="Link to this definition"></a></dt>
+<dd><p>Resetuje grę do stanu początkowego.</p>
+<p>Zeruje planszę i wynik, a następnie dodaje dwa losowe kafelki startowe.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Zwraca<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Kopia planszy (stan początkowy).</p>
+</dd>
+<dt class="field-even">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class" id="module-game_gui">
+<dt class="sig sig-object py" id="game_gui.Game2048App">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">game_gui.</span></span><span class="sig-name descname"><span class="pre">Game2048App</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">root</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App" title="Link to this definition"></a></dt>
+<dd><p>Klasy bazowe: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Aplikacja GUI do gry 2048 oparta na bibliotece Tkinter.</p>
+<p>Integruje manualną rozgrywkę z automatycznym graczem (AI) oraz
+umożliwia uruchamianie benchmarków w tle.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_gui.Game2048App.root">
+<span class="sig-name descname"><span class="pre">root</span></span><a class="headerlink" href="#game_gui.Game2048App.root" title="Link to this definition"></a></dt>
+<dd><p>Główny obiekt okna Tkinter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tk.Tk</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_gui.Game2048App.game">
+<span class="sig-name descname"><span class="pre">game</span></span><a class="headerlink" href="#game_gui.Game2048App.game" title="Link to this definition"></a></dt>
+<dd><p>Instancja logiki gry.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#game_2048.Game2048" title="game_2048.Game2048">Game2048</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_gui.Game2048App.ai">
+<span class="sig-name descname"><span class="pre">ai</span></span><a class="headerlink" href="#game_gui.Game2048App.ai" title="Link to this definition"></a></dt>
+<dd><p>Instancja sztucznej inteligencji.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#ai_player.AIPlayer" title="ai_player.AIPlayer">AIPlayer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="game_gui.Game2048App.canvas">
+<span class="sig-name descname"><span class="pre">canvas</span></span><a class="headerlink" href="#game_gui.Game2048App.canvas" title="Link to this definition"></a></dt>
+<dd><p>Płótno do rysowania kafelków.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tk.Canvas</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.animate_move">
+<span class="sig-name descname"><span class="pre">animate_move</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_pos</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tile_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">duration</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">100</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.animate_move"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.animate_move" title="Link to this definition"></a></dt>
+<dd><p>Prosta animacja przesunięcia kafelka (obecnie nieużywana w głównym loopie dla wydajności).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.draw_grid">
+<span class="sig-name descname"><span class="pre">draw_grid</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.draw_grid"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.draw_grid" title="Link to this definition"></a></dt>
+<dd><p>Rysuje puste tło siatki gry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.key_handler">
+<span class="sig-name descname"><span class="pre">key_handler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.key_handler"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.key_handler" title="Link to this definition"></a></dt>
+<dd><p>Obsługuje zdarzenia klawiatury (strzałki, WASD).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.restart_game">
+<span class="sig-name descname"><span class="pre">restart_game</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.restart_game"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.restart_game" title="Link to this definition"></a></dt>
+<dd><p>Resetuje grę i interfejs.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.run_ai_step">
+<span class="sig-name descname"><span class="pre">run_ai_step</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.run_ai_step"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.run_ai_step" title="Link to this definition"></a></dt>
+<dd><p>Pojedynczy krok pętli AI wywoływany cyklicznie przez <cite>after</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.show_popup">
+<span class="sig-name descname"><span class="pre">show_popup</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.show_popup"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.show_popup" title="Link to this definition"></a></dt>
+<dd><p>Wyświetla okienko końca gry.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.start_1k_benchmark">
+<span class="sig-name descname"><span class="pre">start_1k_benchmark</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.start_1k_benchmark"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.start_1k_benchmark" title="Link to this definition"></a></dt>
+<dd><p>Uruchamia benchmark w oddzielnym wątku.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.toggle_ai">
+<span class="sig-name descname"><span class="pre">toggle_ai</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.toggle_ai"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.toggle_ai" title="Link to this definition"></a></dt>
+<dd><p>Włącza lub wyłącza automatycznego gracza.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="game_gui.Game2048App.update_board">
+<span class="sig-name descname"><span class="pre">update_board</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">animate</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/game_gui.html#Game2048App.update_board"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#game_gui.Game2048App.update_board" title="Link to this definition"></a></dt>
+<dd><p>Rysuje całą planszę na nowo na podstawie stanu <cite>game.board</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-ai_player">
+<span id="sztuczna-inteligencja-i-trenowanie"></span><h2>Sztuczna Inteligencja i Trenowanie<a class="headerlink" href="#module-ai_player" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="ai_player.AIPlayer">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">ai_player.</span></span><span class="sig-name descname"><span class="pre">AIPlayer</span></span><a class="reference internal" href="_modules/ai_player.html#AIPlayer"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer" title="Link to this definition"></a></dt>
+<dd><p>Klasy bazowe: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Agent AI grający w 2048 przy użyciu uczenia ze wzmocnieniem (TD-Learning).</p>
+<p>Implementuje architekturę «Dual-Brain» (Dwa Mózgi):
+1. <strong>Normal Mode</strong>: Strategia do budowania wysokich klocków (spokojna).
+2. <strong>Panic Mode</strong>: Strategia ratunkowa, gdy plansza jest prawie pełna.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.weights_normal">
+<span class="sig-name descname"><span class="pre">weights_normal</span></span><a class="headerlink" href="#ai_player.AIPlayer.weights_normal" title="Link to this definition"></a></dt>
+<dd><p>Wagi cech dla trybu normalnego.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.weights_panic">
+<span class="sig-name descname"><span class="pre">weights_panic</span></span><a class="headerlink" href="#ai_player.AIPlayer.weights_panic" title="Link to this definition"></a></dt>
+<dd><p>Wagi cech dla trybu paniki.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.alpha">
+<span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#ai_player.AIPlayer.alpha" title="Link to this definition"></a></dt>
+<dd><p>Współczynnik uczenia.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.gradients">
+<span class="sig-name descname"><span class="pre">gradients</span></span><a class="headerlink" href="#ai_player.AIPlayer.gradients" title="Link to this definition"></a></dt>
+<dd><p>Prekalkulowane maski gradientów (Snake).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.evaluate">
+<span class="sig-name descname"><span class="pre">evaluate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.evaluate"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.evaluate" title="Link to this definition"></a></dt>
+<dd><p>Główna funkcja oceny stanu planszy (V-Value).</p>
+<p>Dynamicznie przełącza się między wagami NORMAL i PANIC w zależności
+od liczby pustych pól (&lt; 4 to tryb paniki).</p>
+<p>Dodaje ręczne kary (Instynkty):
+- Smoothness (Gładkość)
+- Isolation (Izolacja)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>board</strong> (<em>np.ndarray</em>) – Plansza gry.</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>Wartość oceny stanu (Score).</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.get_expected_value">
+<span class="sig-name descname"><span class="pre">get_expected_value</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.get_expected_value"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.get_expected_value" title="Link to this definition"></a></dt>
+<dd><p>Oblicza wartość oczekiwaną stanu (Expectimax 1-step).</p>
+<p>Symuluje losowe pojawienie się kafelka (2 lub 4) w wolnych miejscach
+i uśrednia wynik oceny dla tych możliwości.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>board</strong> (<em>np.ndarray</em>) – Stan planszy PO ruchu gracza (przed pojawieniem się losowego kafelka).</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>Uśredniona wartość oceny stanu.</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.get_features">
+<span class="sig-name descname"><span class="pre">get_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">board</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.get_features"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.get_features" title="Link to this definition"></a></dt>
+<dd><p>Ekstrahuje wektor cech stanu planszy.</p>
+<p>Oblicza 6 kluczowych metryk znormalizowanych do zakresu używalnego przez sieć.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>board</strong> (<em>np.ndarray</em>) – Aktualna plansza gry.</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>Wektor 6 cech:</dt><dd><ol class="arabic simple" start="0">
+<li><p>Empty Cells (znormalizowane)</p></li>
+<li><p>Max Tile (logarytmicznie)</p></li>
+<li><p>Gradient Score (dopasowanie do węża)</p></li>
+<li><p>Merges Available</p></li>
+<li><p>Corner Position (czy max jest w rogu?)</p></li>
+<li><p>Neighbor Bonus (czy duzi sąsiedzi są obok?)</p></li>
+</ol>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.load_model">
+<span class="sig-name descname"><span class="pre">load_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.load_model"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.load_model" title="Link to this definition"></a></dt>
+<dd><p>Wczytuje stan AI z pliku. Obsługuje wsteczną kompatybilność.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em>) – Ścieżka do pliku.</p>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>Numer wczytanego epizodu (lub 0 jeśli błąd/brak pliku).</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.save_model">
+<span class="sig-name descname"><span class="pre">save_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">episode_count</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.save_model"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.save_model" title="Link to this definition"></a></dt>
+<dd><p>Zapisuje stan AI (wagi obu mózgów) do pliku pickle.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>filename</strong> (<em>str</em>) – Ścieżka do pliku.</p></li>
+<li><p><strong>episode_count</strong> (<em>int</em>) – Numer aktualnego epizodu treningu.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="ai_player.AIPlayer.update_weights">
+<span class="sig-name descname"><span class="pre">update_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">features_state</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">td_error</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/ai_player.html#AIPlayer.update_weights"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#ai_player.AIPlayer.update_weights" title="Link to this definition"></a></dt>
+<dd><p>Aktualizuje wagi sieci (TD-Learning Update) w zależności od fazy gry.</p>
+<p>Decyduje, który zestaw wag (Normal czy Panic) przyczynił się do wyniku
+i aktualizuje tylko ten zestaw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>features_state</strong> (<em>np.ndarray</em>) – Wektor cech stanu przed ruchem.</p></li>
+<li><p><strong>td_error</strong> (<em>float</em>) – Błąd predykcji czasowej (Target - Prediction).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function" id="module-train">
+<dt class="sig sig-object py" id="train.get_shaped_reward">
+<span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">get_shaped_reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">game_reward</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">board</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#get_shaped_reward"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#train.get_shaped_reward" title="Link to this definition"></a></dt>
+<dd><p>Oblicza nagrodę ukształtowaną (Reward Shaping) dla uczenia ze wzmocnieniem.</p>
+<p>Logarytmuje surową nagrodę punktową i dodaje bonus za aktywność,
+aby zachęcić AI do wykonywania ruchów łączących klocki.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>game_reward</strong> (<em>int</em>) – Punkty zdobyte w ruchu (z silnika gry).</p></li>
+<li><p><strong>board</strong> (<em>np.ndarray</em>) – Stan planszy po ruchu.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>Zmodyfikowana wartość nagrody.</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train.save_logs_to_csv">
+<span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">save_logs_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">buffer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#save_logs_to_csv"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#train.save_logs_to_csv" title="Link to this definition"></a></dt>
+<dd><p>Zapisuje bufor logów treningowych do pliku CSV.</p>
+<p>Tworzy nagłówek, jeśli plik nie istnieje.
+Zapisuje: Epizod, Wynik, MaxTile, Czas, oraz wszystkie wagi (Normal/Panic).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>buffer</strong> (<em>list</em>) – Lista list z danymi wierszy.</p></li>
+<li><p><strong>filename</strong> (<em>str</em>) – Nazwa pliku wyjściowego.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="train.train">
+<span class="sig-prename descclassname"><span class="pre">train.</span></span><span class="sig-name descname"><span class="pre">train</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/train.html#train"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#train.train" title="Link to this definition"></a></dt>
+<dd><p>Główna pętla treningowa AI.</p>
+<p>Proces:
+1. Inicjalizacja gry i AI (ładowanie checkpointu).
+2. Pętla po epizodach (grach).
+3. Wybór ruchu (1-step Lookahead).
+4. Aktualizacja wag (TD-Learning).
+5. Logowanie wyników i zapisywanie modelu.</p>
+</dd></dl>
+
+<dl class="py function" id="module-find_bestWagi">
+<dt class="sig sig-object py" id="find_bestWagi.analyze_best_performance">
+<span class="sig-prename descclassname"><span class="pre">find_bestWagi.</span></span><span class="sig-name descname"><span class="pre">analyze_best_performance</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/find_bestWagi.html#analyze_best_performance"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#find_bestWagi.analyze_best_performance" title="Link to this definition"></a></dt>
+<dd><p>Analizuje plik CSV w poszukiwaniu najlepszego momentu treningu.</p>
+<p>Znajduje epizod z najwyższą średnią kroczącą wyników (window=50),
+a następnie wypisuje gotowy kod Pythona z wagami do wklejenia w <cite>ai_player.py</cite>.</p>
+</dd></dl>
+
+</section>
+<section id="module-benchmark_module">
+<span id="analiza-i-wykresy"></span><h2>Analiza i Wykresy<a class="headerlink" href="#module-benchmark_module" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">benchmark_module.</span></span><span class="sig-name descname"><span class="pre">Benchmark</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ai_player</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmark_module.html#Benchmark"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#benchmark_module.Benchmark" title="Link to this definition"></a></dt>
+<dd><p>Klasy bazowe: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Moduł testujący wydajność AI na dużej próbie gier.</p>
+<p>Generuje raporty graficzne z:
+1. Heatmapą (które pola są najważniejsze).
+2. Statystykami (rozkład max klocka).
+3. Wizualizacją najlepszej i najgorszej gry.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark.ai">
+<span class="sig-name descname"><span class="pre">ai</span></span><a class="headerlink" href="#benchmark_module.Benchmark.ai" title="Link to this definition"></a></dt>
+<dd><p>Instancja agenta AI do przetestowania.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#ai_player.AIPlayer" title="ai_player.AIPlayer">AIPlayer</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark.games_to_run">
+<span class="sig-name descname"><span class="pre">games_to_run</span></span><a class="headerlink" href="#benchmark_module.Benchmark.games_to_run" title="Link to this definition"></a></dt>
+<dd><p>Liczba gier do symulacji (domyślnie 1000).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark.output_folder">
+<span class="sig-name descname"><span class="pre">output_folder</span></span><a class="headerlink" href="#benchmark_module.Benchmark.output_folder" title="Link to this definition"></a></dt>
+<dd><p>Folder na wyniki.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark.get_next_base_filename">
+<span class="sig-name descname"><span class="pre">get_next_base_filename</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmark_module.html#Benchmark.get_next_base_filename"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#benchmark_module.Benchmark.get_next_base_filename" title="Link to this definition"></a></dt>
+<dd><p>Generuje unikalną nazwę pliku wyjściowego (inkrementacja licznika).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="benchmark_module.Benchmark.run">
+<span class="sig-name descname"><span class="pre">run</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">update_gui_callback</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmark_module.html#Benchmark.run"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#benchmark_module.Benchmark.run" title="Link to this definition"></a></dt>
+<dd><p>Uruchamia główną pętlę benchmarku przy użyciu wielowątkowości (ProcessPoolExecutor).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>update_gui_callback</strong> (<em>function</em><em>, </em><em>optional</em>) – Funkcja zwrotna do aktualizacji paska postępu w GUI.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="benchmark_module.run_single_game">
+<span class="sig-prename descclassname"><span class="pre">benchmark_module.</span></span><span class="sig-name descname"><span class="pre">run_single_game</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights_normal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weights_panic</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_table</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/benchmark_module.html#run_single_game"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#benchmark_module.run_single_game" title="Link to this definition"></a></dt>
+<dd><p>Uruchamia pojedynczą grę w izolowanym procesie.</p>
+<p>Zbiera heatmapę (częstotliwość odwiedzin pól) dla każdego ruchu.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>weights_normal</strong> (<em>np.ndarray</em>) – Wagi dla trybu normalnego.</p></li>
+<li><p><strong>weights_panic</strong> (<em>np.ndarray</em>) – Wagi dla trybu paniki.</p></li>
+<li><p><strong>log_table</strong> (<em>np.ndarray</em>) – Tablica prekomputowanych logarytmów (nieużywana w tej wersji, ale zachowana).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Zwraca<span class="colon">:</span></dt>
+<dd class="field-even"><p>(wynik, max_kafelek, plansza_końcowa, lokalna_heatmapa, liczba_ruchów)</p>
+</dd>
+<dt class="field-odd">Typ zwracany<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function" id="module-plot_charts">
+<dt class="sig sig-object py" id="plot_charts.generate_charts">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">generate_charts</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#generate_charts"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.generate_charts" title="Link to this definition"></a></dt>
+<dd><p>Główna funkcja sterująca generowaniem wszystkich wykresów.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_charts.plot_just_scores">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">plot_just_scores</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#plot_just_scores"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.plot_just_scores" title="Link to this definition"></a></dt>
+<dd><p>Rysuje wykres średniego wyniku (Rolling Mean).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – DataFrame z danymi treningowymi.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_charts.plot_moves_only">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">plot_moves_only</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#plot_moves_only"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.plot_moves_only" title="Link to this definition"></a></dt>
+<dd><p>Rysuje średnią liczbę ruchów na grę (wskaźnik przetrwania).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – DataFrame z danymi treningowymi.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_charts.plot_tiles_split">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">plot_tiles_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#plot_tiles_split"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.plot_tiles_split" title="Link to this definition"></a></dt>
+<dd><p>Rysuje wykresy dotyczące maksymalnego klocka.
+1. Rekordowy max (peak).
+2. Średni max (stabilność).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – DataFrame z danymi treningowymi.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_charts.plot_weights">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">plot_weights</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#plot_weights"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.plot_weights" title="Link to this definition"></a></dt>
+<dd><p>Rysuje zmiany wartości wag w czasie dla obu trybów (Normal i Panic).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parametry<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>df</strong> (<em>pd.DataFrame</em>) – DataFrame z danymi treningowymi.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="plot_charts.setup_style">
+<span class="sig-prename descclassname"><span class="pre">plot_charts.</span></span><span class="sig-name descname"><span class="pre">setup_style</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/plot_charts.html#setup_style"><span class="viewcode-link"><span class="pre">[źródło]</span></span></a><a class="headerlink" href="#plot_charts.setup_style" title="Link to this definition"></a></dt>
+<dd><p>Ustawia styl wykresów matplotlib (seaborn lub ggplot).</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

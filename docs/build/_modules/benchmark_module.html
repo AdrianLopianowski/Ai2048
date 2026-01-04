@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>benchmark_module &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=331e28ce"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=2827c288"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="../genindex.html" />
+    <link rel="search" title="Szukaj" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Kod modułu</a></li>
+      <li class="breadcrumb-item active">benchmark_module</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Kod źródłowy modułu benchmark_module</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patheffects</span> <span class="k">as</span> <span class="nn">path_effects</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">patches</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">game_2048</span> <span class="kn">import</span> <span class="n">Game2048</span>
+<span class="kn">from</span> <span class="nn">ai_player</span> <span class="kn">import</span> <span class="n">AIPlayer</span>
+<span class="kn">import</span> <span class="nn">concurrent.futures</span>
+
+<span class="c1"># Próba ustawienia ładniejszego stylu wykresów</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;seaborn-v0_8-white&#39;</span><span class="p">)</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="k">pass</span>
+
+<span class="c1"># --- KOLORY DO WIZUALIZACJI PLANSZ ---</span>
+<span class="n">GRID_COLOR</span> <span class="o">=</span> <span class="s1">&#39;#bbada0&#39;</span> <span class="c1"># Kolor tła siatki gry</span>
+<span class="n">CELL_COLORS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="mi">0</span><span class="p">:</span> <span class="s1">&#39;#cdc1b4&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;#eee4da&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;#ede0c8&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="s1">&#39;#f2b179&#39;</span><span class="p">,</span>
+    <span class="mi">16</span><span class="p">:</span> <span class="s1">&#39;#f59563&#39;</span><span class="p">,</span> <span class="mi">32</span><span class="p">:</span> <span class="s1">&#39;#f67c5f&#39;</span><span class="p">,</span> <span class="mi">64</span><span class="p">:</span> <span class="s1">&#39;#f65e3b&#39;</span><span class="p">,</span> <span class="mi">128</span><span class="p">:</span> <span class="s1">&#39;#edcf72&#39;</span><span class="p">,</span>
+    <span class="mi">256</span><span class="p">:</span> <span class="s1">&#39;#edcc61&#39;</span><span class="p">,</span> <span class="mi">512</span><span class="p">:</span> <span class="s1">&#39;#edc850&#39;</span><span class="p">,</span> <span class="mi">1024</span><span class="p">:</span> <span class="s1">&#39;#edc53f&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">:</span> <span class="s1">&#39;#edc22e&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;super&#39;</span><span class="p">:</span> <span class="s1">&#39;#3c3a32&#39;</span>
+<span class="p">}</span>
+<span class="n">TEXT_COLORS</span> <span class="o">=</span> <span class="p">{</span> <span class="mi">2</span><span class="p">:</span> <span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="s1">&#39;other&#39;</span><span class="p">:</span> <span class="s1">&#39;#f9f6f2&#39;</span><span class="p">}</span>
+
+<div class="viewcode-block" id="run_single_game">
+<a class="viewcode-back" href="../index.html#benchmark_module.run_single_game">[dokumentacja]</a>
+<span class="k">def</span> <span class="nf">run_single_game</span><span class="p">(</span><span class="n">weights_normal</span><span class="p">,</span> <span class="n">weights_panic</span><span class="p">,</span> <span class="n">log_table</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uruchamia pojedynczą grę w izolowanym procesie.</span>
+<span class="sd">    </span>
+<span class="sd">    Zbiera heatmapę (częstotliwość odwiedzin pól) dla każdego ruchu.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        weights_normal (np.ndarray): Wagi dla trybu normalnego.</span>
+<span class="sd">        weights_panic (np.ndarray): Wagi dla trybu paniki.</span>
+<span class="sd">        log_table (np.ndarray): Tablica prekomputowanych logarytmów (nieużywana w tej wersji, ale zachowana).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (wynik, max_kafelek, plansza_końcowa, lokalna_heatmapa, liczba_ruchów)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">ai</span> <span class="o">=</span> <span class="n">AIPlayer</span><span class="p">()</span>
+    <span class="n">ai</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">=</span> <span class="n">weights_normal</span>
+    <span class="n">ai</span><span class="o">.</span><span class="n">weights_panic</span> <span class="o">=</span> <span class="n">weights_panic</span>
+    <span class="n">ai</span><span class="o">.</span><span class="n">log_table</span> <span class="o">=</span> <span class="n">log_table</span>
+    <span class="n">ai</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">ai</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="n">game</span> <span class="o">=</span> <span class="n">Game2048</span><span class="p">()</span>
+    <span class="n">sim_game</span> <span class="o">=</span> <span class="n">Game2048</span><span class="p">()</span>
+
+    <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">board</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">local_heatmap</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">moves_in_game</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+        <span class="n">valid_moves</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">get_valid_moves</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_moves</span><span class="p">:</span>
+            <span class="k">break</span>
+
+        <span class="n">best_move</span><span class="p">,</span> <span class="n">best_v</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">move</span> <span class="ow">in</span> <span class="n">valid_moves</span><span class="p">:</span>
+            <span class="n">sim_game</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">state</span>
+            <span class="n">next_s</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">sim_game</span><span class="o">.</span><span class="n">move_without_random</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="n">ai</span><span class="o">.</span><span class="n">get_expected_value</span><span class="p">(</span><span class="n">next_s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">best_v</span><span class="p">:</span>
+                <span class="n">best_v</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="n">best_move</span> <span class="o">=</span> <span class="n">move</span>
+
+        <span class="n">state</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">best_move</span><span class="p">)</span>
+
+        <span class="n">local_heatmap</span> <span class="o">+=</span> <span class="n">game</span><span class="o">.</span><span class="n">board</span>
+        <span class="n">moves_in_game</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">game</span><span class="o">.</span><span class="n">score</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">game</span><span class="o">.</span><span class="n">board</span><span class="p">),</span> <span class="n">game</span><span class="o">.</span><span class="n">board</span><span class="p">,</span> <span class="n">local_heatmap</span><span class="p">,</span> <span class="n">moves_in_game</span></div>
+
+
+<div class="viewcode-block" id="Benchmark">
+<a class="viewcode-back" href="../index.html#benchmark_module.Benchmark">[dokumentacja]</a>
+<span class="k">class</span> <span class="nc">Benchmark</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Moduł testujący wydajność AI na dużej próbie gier.</span>
+<span class="sd">    </span>
+<span class="sd">    Generuje raporty graficzne z:</span>
+<span class="sd">    1. Heatmapą (które pola są najważniejsze).</span>
+<span class="sd">    2. Statystykami (rozkład max klocka).</span>
+<span class="sd">    3. Wizualizacją najlepszej i najgorszej gry.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        ai (AIPlayer): Instancja agenta AI do przetestowania.</span>
+<span class="sd">        games_to_run (int): Liczba gier do symulacji (domyślnie 1000).</span>
+<span class="sd">        output_folder (str): Folder na wyniki.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ai_player</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai</span> <span class="o">=</span> <span class="n">ai_player</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">games_to_run</span> <span class="o">=</span> <span class="mi">1000</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_prefix</span> <span class="o">=</span> <span class="s2">&quot;avg1k&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span> <span class="o">=</span> <span class="s2">&quot;benchmarks&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Błąd tworzenia folderu: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Benchmark.get_next_base_filename">
+<a class="viewcode-back" href="../index.html#benchmark_module.Benchmark.get_next_base_filename">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">get_next_base_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generuje unikalną nazwę pliku wyjściowego (inkrementacja licznika).&quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">base</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_folder</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">output_prefix</span><span class="si">}</span><span class="s2">-</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">02d</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">base</span> <span class="o">+</span> <span class="s2">&quot;.png&quot;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">base</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="Benchmark.run">
+<a class="viewcode-back" href="../index.html#benchmark_module.Benchmark.run">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_gui_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Uruchamia główną pętlę benchmarku przy użyciu wielowątkowości (ProcessPoolExecutor).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            update_gui_callback (function, optional): Funkcja zwrotna do aktualizacji paska postępu w GUI.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">max_tiles</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">global_heatmap_sum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">total_moves_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">min_score</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="n">worst_board</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">max_score</span> <span class="o">=</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+        <span class="n">best_board</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Rozpoczynam benchmark </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">games_to_run</span><span class="si">}</span><span class="s2"> gier (ANALIZA RUCH PO RUCHU)...&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+        <span class="n">w_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_normal</span>
+        <span class="n">w_panic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_panic</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">l_table</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">log_table</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="n">l_table</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">66000</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">17</span><span class="p">):</span>
+                <span class="n">l_table</span><span class="p">[</span><span class="mi">2</span><span class="o">**</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">ProcessPoolExecutor</span><span class="p">()</span> <span class="k">as</span> <span class="n">executor</span><span class="p">:</span>
+            <span class="n">futures</span> <span class="o">=</span> <span class="p">[</span><span class="n">executor</span><span class="o">.</span><span class="n">submit</span><span class="p">(</span><span class="n">run_single_game</span><span class="p">,</span> <span class="n">w_norm</span><span class="p">,</span> <span class="n">w_panic</span><span class="p">,</span> <span class="n">l_table</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">games_to_run</span><span class="p">)]</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">future</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">concurrent</span><span class="o">.</span><span class="n">futures</span><span class="o">.</span><span class="n">as_completed</span><span class="p">(</span><span class="n">futures</span><span class="p">)):</span>
+                <span class="n">score</span><span class="p">,</span> <span class="n">max_val</span><span class="p">,</span> <span class="n">final_board</span><span class="p">,</span> <span class="n">local_heatmap</span><span class="p">,</span> <span class="n">moves_cnt</span> <span class="o">=</span> <span class="n">future</span><span class="o">.</span><span class="n">result</span><span class="p">()</span>
+
+                <span class="n">scores</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+                <span class="n">max_tiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">max_val</span><span class="p">)</span>
+
+                <span class="n">global_heatmap_sum</span> <span class="o">+=</span> <span class="n">local_heatmap</span>
+                <span class="n">total_moves_count</span> <span class="o">+=</span> <span class="n">moves_cnt</span>
+
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">max_score</span><span class="p">:</span>
+                    <span class="n">max_score</span> <span class="o">=</span> <span class="n">score</span>
+                    <span class="n">best_board</span> <span class="o">=</span> <span class="n">final_board</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">score</span> <span class="o">&lt;</span> <span class="n">min_score</span><span class="p">:</span>
+                    <span class="n">min_score</span> <span class="o">=</span> <span class="n">score</span>
+                    <span class="n">worst_board</span> <span class="o">=</span> <span class="n">final_board</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="n">update_gui_callback</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">10</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">update_gui_callback</span><span class="p">(</span><span class="n">final_board</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">games_to_run</span><span class="p">,</span> <span class="n">score</span><span class="p">)</span>
+
+        <span class="n">duration</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">start_time</span>
+        <span class="n">avg_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+        <span class="n">heatmap_avg</span> <span class="o">=</span> <span class="n">global_heatmap_sum</span> <span class="o">/</span> <span class="n">total_moves_count</span> <span class="k">if</span> <span class="n">total_moves_count</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">global_heatmap_sum</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Benchmark zakończony w </span><span class="si">{</span><span class="n">duration</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">s. Średnia: </span><span class="si">{</span><span class="n">avg_score</span><span class="si">:</span><span class="s2">.0f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Przeanalizowano łącznie </span><span class="si">{</span><span class="n">total_moves_count</span><span class="si">}</span><span class="s2"> ruchów.&quot;</span><span class="p">)</span>
+
+        <span class="n">base_filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_next_base_filename</span><span class="p">()</span>
+        <span class="n">main_plot_file</span> <span class="o">=</span> <span class="n">base_filename</span> <span class="o">+</span> <span class="s2">&quot;.png&quot;</span>
+        <span class="n">best_plot_file</span> <span class="o">=</span> <span class="n">base_filename</span> <span class="o">+</span> <span class="s2">&quot;-BEST.png&quot;</span>
+        <span class="n">worst_plot_file</span> <span class="o">=</span> <span class="n">base_filename</span> <span class="o">+</span> <span class="s2">&quot;-WORST.png&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_generate_main_plot</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">max_tiles</span><span class="p">,</span> <span class="n">heatmap_avg</span><span class="p">,</span> <span class="n">min_score</span><span class="p">,</span> <span class="n">max_score</span><span class="p">,</span> <span class="n">main_plot_file</span><span class="p">)</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--&gt; Zapisywanie plansz ekstremalnych (High Quality)...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_board_image</span><span class="p">(</span><span class="n">best_board</span><span class="p">,</span> <span class="n">max_score</span><span class="p">,</span> <span class="s2">&quot;NAJLEPSZY WYNIK&quot;</span><span class="p">,</span> <span class="n">best_plot_file</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_board_image</span><span class="p">(</span><span class="n">worst_board</span><span class="p">,</span> <span class="n">min_score</span><span class="p">,</span> <span class="s2">&quot;NAJGORSZY WYNIK&quot;</span><span class="p">,</span> <span class="n">worst_plot_file</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;nt&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">startfile</span><span class="p">(</span><span class="n">main_plot_file</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;xdg-open </span><span class="si">{</span><span class="n">main_plot_file</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span> <span class="k">pass</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_save_board_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">title_prefix</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Rysuje planszę używając prostokątów (patches), aby imitować wygląd gry.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+
+        <span class="c1"># Parametry siatki</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">cell_size</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="n">grid_width</span> <span class="o">=</span> <span class="mi">4</span> <span class="o">*</span> <span class="n">cell_size</span> <span class="o">+</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">padding</span>
+
+        <span class="c1"># Tło całej siatki</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">grid_width</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">grid_width</span><span class="p">)</span>
+        <span class="n">bg_rect</span> <span class="o">=</span> <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">grid_width</span><span class="p">,</span> <span class="n">grid_width</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">GRID_COLOR</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">bg_rect</span><span class="p">)</span>
+
+        <span class="c1"># Rysowanie komórek</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">])</span>
+
+                <span class="c1"># Obliczanie pozycji (odwracamy oś Y, bo w macierzy 0 jest na górze)</span>
+                <span class="n">x_pos</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">+</span> <span class="n">col</span> <span class="o">*</span> <span class="p">(</span><span class="n">cell_size</span> <span class="o">+</span> <span class="n">padding</span><span class="p">)</span>
+                <span class="n">y_pos</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">+</span> <span class="p">(</span><span class="mi">3</span> <span class="o">-</span> <span class="n">row</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">cell_size</span> <span class="o">+</span> <span class="n">padding</span><span class="p">)</span>
+
+                <span class="c1"># Kolor tła kafelka</span>
+                <span class="n">bg_color</span> <span class="o">=</span> <span class="n">CELL_COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">CELL_COLORS</span><span class="p">[</span><span class="s1">&#39;super&#39;</span><span class="p">])</span>
+
+                <span class="c1"># Rysowanie kafelka (zaokrąglone rogi nie są łatwe w matplotlib,</span>
+                <span class="c1"># ale zwykły prostokąt z odpowiednimi kolorami wygląda dobrze)</span>
+                <span class="n">rect</span> <span class="o">=</span> <span class="n">patches</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">),</span> <span class="n">cell_size</span><span class="p">,</span> <span class="n">cell_size</span><span class="p">,</span>
+                                         <span class="n">linewidth</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">bg_color</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
+
+                <span class="c1"># Rysowanie tekstu</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">text_color</span> <span class="o">=</span> <span class="n">TEXT_COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">TEXT_COLORS</span><span class="p">[</span><span class="s1">&#39;other&#39;</span><span class="p">])</span>
+
+                    <span class="c1"># Dynamiczny rozmiar czcionki</span>
+                    <span class="n">font_size</span> <span class="o">=</span> <span class="mi">35</span>
+                    <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span> <span class="n">font_size</span> <span class="o">=</span> <span class="mi">30</span>
+                    <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">1000</span><span class="p">:</span> <span class="n">font_size</span> <span class="o">=</span> <span class="mi">24</span>
+                    <span class="k">if</span> <span class="n">val</span> <span class="o">&gt;</span> <span class="mi">10000</span><span class="p">:</span> <span class="n">font_size</span> <span class="o">=</span> <span class="mi">20</span>
+
+                    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">x_pos</span> <span class="o">+</span> <span class="n">cell_size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="n">y_pos</span> <span class="o">+</span> <span class="n">cell_size</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">val</span><span class="p">),</span>
+                            <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">text_color</span><span class="p">,</span>
+                            <span class="n">fontsize</span><span class="o">=</span><span class="n">font_size</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">fontfamily</span><span class="o">=</span><span class="s1">&#39;sans-serif&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Tytuł</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">title_prefix</span><span class="si">}</span><span class="se">\n</span><span class="s2">Wynik: </span><span class="si">{</span><span class="n">score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="c1"># Zapis w wysokiej jakości</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#faf8ef&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_generate_main_plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scores</span><span class="p">,</span> <span class="n">max_tiles</span><span class="p">,</span> <span class="n">heatmap_avg</span><span class="p">,</span> <span class="n">min_score</span><span class="p">,</span> <span class="n">max_score</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Generuje główny raport zbiorczy (GridSpec: Heatmapa, Statystyki, Wagi).&quot;&quot;&quot;</span>
+        <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">12</span><span class="p">),</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#faf8ef&#39;</span><span class="p">)</span>
+        <span class="n">gs</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_gridspec</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="c1"># 1. MAPA CIEPŁA (AVERAGE PER MOVE)</span>
+        <span class="n">ax_map</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="n">heatmap_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">heatmap_avg</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Używamy &#39;inferno&#39; dla bardziej &quot;gorącego&quot; wyglądu, lub &#39;magma&#39;</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">ax_map</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">heatmap_log</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;inferno&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="s1">&#39;nearest&#39;</span><span class="p">)</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Analiza Strategii (Średnia Wartość Pola na Ruch)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">15</span><span class="p">)</span>
+
+        <span class="c1"># Dodanie siatki oddzielającej pola na heatmapie</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mf">.5</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">minor</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">tick_params</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;minor&#39;</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">left</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">ax_map</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+                <span class="n">val</span> <span class="o">=</span> <span class="n">heatmap_avg</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+                <span class="n">val_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="c1"># Biały tekst z mocnym czarnym obrysem dla kontrastu</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">ax_map</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">val_str</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                                   <span class="n">color</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+                <span class="n">text</span><span class="o">.</span><span class="n">set_path_effects</span><span class="p">([</span><span class="n">path_effects</span><span class="o">.</span><span class="n">withStroke</span><span class="p">(</span><span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">)])</span>
+
+        <span class="n">cbar</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">im</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax_map</span><span class="p">,</span> <span class="n">fraction</span><span class="o">=</span><span class="mf">0.046</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mf">0.04</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Skala Logarytmiczna (Log2)&#39;</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">270</span><span class="p">,</span> <span class="n">labelpad</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+        <span class="n">cbar</span><span class="o">.</span><span class="n">outline</span><span class="o">.</span><span class="n">set_linewidth</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># 2. STATYSTYKI</span>
+        <span class="n">ax_stats</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+        <span class="n">ax_stats</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="n">counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">max_tiles</span><span class="p">)</span>
+        <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">max_tiles</span><span class="p">)</span>
+        <span class="n">sorted_tiles</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">text_str</span> <span class="o">=</span> <span class="s2">&quot;DYSTRYBUCJA MAX KLOCKA:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="s2">&quot;━&quot;</span> <span class="o">*</span> <span class="mi">25</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="k">for</span> <span class="n">tile</span> <span class="ow">in</span> <span class="n">sorted_tiles</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tile</span> <span class="o">&gt;=</span> <span class="mi">128</span><span class="p">:</span> <span class="c1"># Pokazujemy też mniejsze, jeśli to był max</span>
+                <span class="n">count</span> <span class="o">=</span> <span class="n">counts</span><span class="p">[</span><span class="n">tile</span><span class="p">]</span>
+                <span class="n">perc</span> <span class="o">=</span> <span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">total</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+                <span class="c1"># Ładniejsze formatowanie z wyrównaniem</span>
+                <span class="n">text_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">tile</span><span class="si">:</span><span class="s2">&lt;5</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">count</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2"> gier (</span><span class="si">{</span><span class="n">perc</span><span class="si">:</span><span class="s2">&gt;5.1f</span><span class="si">}</span><span class="s2">%)</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="n">avg_score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scores</span><span class="p">)</span>
+
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">STATYSTYKI PUNKTOWE:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="s2">&quot;━&quot;</span> <span class="o">*</span> <span class="mi">25</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Średnia : </span><span class="si">{</span><span class="n">avg_score</span><span class="si">:</span><span class="s2">&gt;8.0f</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Max     : </span><span class="si">{</span><span class="n">max_score</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">text_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Min     : </span><span class="si">{</span><span class="n">min_score</span><span class="si">:</span><span class="s2">&gt;8</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+        <span class="c1"># Umieszczenie tekstu w ładnym &quot;pudełku&quot;</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxstyle</span><span class="o">=</span><span class="s1">&#39;round,pad=1&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#f9f6f2&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;#bbada0&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_stats</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">text_str</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax_stats</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">,</span>
+                      <span class="n">verticalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">horizontalalignment</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span>
+                      <span class="n">fontfamily</span><span class="o">=</span><span class="s1">&#39;monospace&#39;</span><span class="p">,</span> <span class="n">bbox</span><span class="o">=</span><span class="n">props</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">)</span>
+
+        <span class="c1"># 3. WAGI</span>
+        <span class="n">ax_weights</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">])</span> <span class="c1"># Rozciągamy na całą szerokość</span>
+        <span class="n">ax_weights</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+        <span class="n">w_norm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_normal</span>
+        <span class="n">w_panic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_panic</span>
+
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Empty&quot;</span><span class="p">,</span> <span class="s2">&quot;MaxTile&quot;</span><span class="p">,</span> <span class="s2">&quot;Gradient&quot;</span><span class="p">,</span> <span class="s2">&quot;Merge&quot;</span><span class="p">,</span> <span class="s2">&quot;Corner&quot;</span><span class="p">,</span> <span class="s2">&quot;Neighbor&quot;</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">format_weights_nice</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+            <span class="n">parts</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">weights</span><span class="p">):</span>
+                <span class="n">name</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">else</span> <span class="sa">f</span><span class="s2">&quot;W</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">val</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="s2">&quot;   &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span>
+
+        <span class="n">weights_text</span> <span class="o">=</span> <span class="s2">&quot;AKTUALNA KONFIGURACJA WAG AI</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">weights_text</span> <span class="o">+=</span> <span class="s2">&quot;━&quot;</span> <span class="o">*</span> <span class="mi">60</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">weights_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Tryb NORMAL (Budowanie) :  </span><span class="si">{</span><span class="n">format_weights_nice</span><span class="p">(</span><span class="n">w_norm</span><span class="p">)</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="n">weights_text</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;Tryb PANIC  (Ratunek)   :  </span><span class="si">{</span><span class="n">format_weights_nice</span><span class="p">(</span><span class="n">w_panic</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+
+        <span class="n">props_w</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">boxstyle</span><span class="o">=</span><span class="s1">&#39;round,pad=0.8&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#edf2f7&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;#cbd5e0&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax_weights</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">weights_text</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="n">ax_weights</span><span class="o">.</span><span class="n">transAxes</span><span class="p">,</span>
+                        <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">fontfamily</span><span class="o">=</span><span class="s1">&#39;monospace&#39;</span><span class="p">,</span>
+                        <span class="n">bbox</span><span class="o">=</span><span class="n">props_w</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2d3748&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Zapisywanie głównego wykresu do: </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#faf8ef&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

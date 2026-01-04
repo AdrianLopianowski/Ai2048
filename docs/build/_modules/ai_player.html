@@ -1,0 +1,492 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ai_player &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=331e28ce"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=2827c288"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="../genindex.html" />
+    <link rel="search" title="Szukaj" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Kod modułu</a></li>
+      <li class="breadcrumb-item active">ai_player</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Kod źródłowy modułu ai_player</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">os</span>
+
+
+<div class="viewcode-block" id="AIPlayer">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer">[dokumentacja]</a>
+<span class="k">class</span> <span class="nc">AIPlayer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Agent AI grający w 2048 przy użyciu uczenia ze wzmocnieniem (TD-Learning).</span>
+<span class="sd">    </span>
+<span class="sd">    Implementuje architekturę &#39;Dual-Brain&#39; (Dwa Mózgi):</span>
+<span class="sd">    1. **Normal Mode**: Strategia do budowania wysokich klocków (spokojna).</span>
+<span class="sd">    2. **Panic Mode**: Strategia ratunkowa, gdy plansza jest prawie pełna.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        weights_normal (np.ndarray): Wagi cech dla trybu normalnego.</span>
+<span class="sd">        weights_panic (np.ndarray): Wagi cech dla trybu paniki.</span>
+<span class="sd">        alpha (float): Współczynnik uczenia.</span>
+<span class="sd">        gradients (list): Prekalkulowane maski gradientów (Snake).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># --- ZMIANA: Dwa zestawy wag ---</span>
+        <span class="c1"># 0: Empty, 1: MaxTile, 2: Gradient, 3: Merge, 4: CORNER, 5: NEIGHBOR</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>
+
+        <span class="c1">#self.weights_normal = np.array([59.9187, 82.6526, 60.0667, 15.1476, 73.9965, 36.1539])</span>
+        <span class="c1">#self.weights_panic  = np.array([26.1066, 111.3576, 98.2233, 26.5400, 86.6307, 62.5051])</span>
+
+        <span class="c1">#self.weights_normal = np.array([67.0, 96.0, 70.0, 15.0, 92.0, 41.0])</span>
+
+        <span class="c1"># W panice pozwalamy na więcej chaosu (Merge i Empty w górę)</span>
+        <span class="c1">#self.weights_panic  = np.array([32.0, 137.0, 122.0, 29.0, 122.0, 74.0])</span>
+
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="mf">0.00025</span>
+
+        <span class="c1"># Macierz Gradientu (Snake)</span>
+        <span class="n">base_gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span>
+            <span class="p">[</span><span class="mi">15</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">12</span><span class="p">],</span>
+            <span class="p">[</span> <span class="mi">8</span><span class="p">,</span>  <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">],</span>
+            <span class="p">[</span> <span class="mi">7</span><span class="p">,</span>  <span class="mi">6</span><span class="p">,</span>  <span class="mi">5</span><span class="p">,</span>  <span class="mi">4</span><span class="p">],</span>
+            <span class="p">[</span> <span class="mi">0</span><span class="p">,</span>  <span class="mi">1</span><span class="p">,</span>  <span class="mi">2</span><span class="p">,</span>  <span class="mi">3</span><span class="p">]</span>
+        <span class="p">])</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gradients</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
+            <span class="n">rot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rot90</span><span class="p">(</span><span class="n">base_gradient</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gradients</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fliplr</span><span class="p">(</span><span class="n">rot</span><span class="p">))</span>
+
+<div class="viewcode-block" id="AIPlayer.get_features">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.get_features">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">get_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ekstrahuje wektor cech stanu planszy.</span>
+
+<span class="sd">        Oblicza 6 kluczowych metryk znormalizowanych do zakresu używalnego przez sieć.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            board (np.ndarray): Aktualna plansza gry.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            np.ndarray: Wektor 6 cech:</span>
+<span class="sd">                0. Empty Cells (znormalizowane)</span>
+<span class="sd">                1. Max Tile (logarytmicznie)</span>
+<span class="sd">                2. Gradient Score (dopasowanie do węża)</span>
+<span class="sd">                3. Merges Available</span>
+<span class="sd">                4. Corner Position (czy max jest w rogu?)</span>
+<span class="sd">                5. Neighbor Bonus (czy duzi sąsiedzi są obok?)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Logarytmy planszy</span>
+        <span class="n">board_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">board</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="n">board_log</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+
+        <span class="c1"># --- NORMALIZACJA CECH ---</span>
+        <span class="c1"># Cecha 1: Puste Pola</span>
+        <span class="n">empty</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="n">board</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="mf">16.0</span>
+
+        <span class="c1"># Cecha 2: Max Tile</span>
+        <span class="n">max_val_norm</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">board_log</span><span class="p">)</span> <span class="o">/</span> <span class="mf">16.0</span> <span class="c1"># Zakładamy max 65536 (2^16)</span>
+
+        <span class="c1"># Cecha 3: Snake Gradient</span>
+        <span class="n">gradient_scores</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">board_log</span> <span class="o">*</span> <span class="n">g</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gradients</span><span class="p">]</span>
+        <span class="n">best_gradient</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">gradient_scores</span><span class="p">)</span> <span class="o">/</span> <span class="mf">1000.0</span>
+
+        <span class="c1"># Cecha 4: Merges</span>
+        <span class="n">merges_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">board</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">merges_v</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">==</span> <span class="n">board</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">merges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">merges_h</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">merges_v</span><span class="p">)</span>
+        <span class="n">merges_norm</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">merges</span> <span class="o">/</span> <span class="mf">10.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># --- NOWE CECHY (Dla zgodności z 6 wagami) ---</span>
+
+        <span class="c1"># Cecha 5: KOTWICA (Czy max jest w rogu?)</span>
+        <span class="n">max_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+        <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">max_pos</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="n">is_corner</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">r</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">r</span> <span class="o">==</span> <span class="mi">3</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">c</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">is_corner</span> <span class="o">=</span> <span class="mf">1.0</span>
+
+        <span class="c1"># Cecha 6: SĄSIEDZTWO (Czy duzi sąsiedzi są obok?)</span>
+        <span class="n">neighbor_bonus</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">for</span> <span class="n">dr</span><span class="p">,</span> <span class="n">dc</span> <span class="ow">in</span> <span class="p">[(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)]:</span>
+            <span class="n">nr</span><span class="p">,</span> <span class="n">nc</span> <span class="o">=</span> <span class="n">r</span> <span class="o">+</span> <span class="n">dr</span><span class="p">,</span> <span class="n">c</span> <span class="o">+</span> <span class="n">dc</span>
+            <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">nr</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">and</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">nc</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">board</span><span class="p">[</span><span class="n">nr</span><span class="p">,</span> <span class="n">nc</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">neighbor_bonus</span> <span class="o">+=</span> <span class="n">board_log</span><span class="p">[</span><span class="n">nr</span><span class="p">,</span> <span class="n">nc</span><span class="p">]</span>
+
+        <span class="c1"># Normalizacja (zakładamy max ~40 pkt logarytmicznych wokół)</span>
+        <span class="n">neighbor_norm</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">neighbor_bonus</span> <span class="o">/</span> <span class="mf">40.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+
+        <span class="c1"># Zwracamy wektor 6-elementowy!</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">empty</span><span class="p">,</span> <span class="n">max_val_norm</span><span class="p">,</span> <span class="n">best_gradient</span><span class="p">,</span> <span class="n">merges_norm</span><span class="p">,</span> <span class="n">is_corner</span><span class="p">,</span> <span class="n">neighbor_norm</span><span class="p">])</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_calculate_smoothness</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Oblicza karę za brak gładkości (różnice między sąsiadami).</span>
+<span class="sd">        </span>
+<span class="sd">        Wersja ZWEKTORYZOWANA (Błyskawiczna). Zamiast pętli, używamy operacji na całych macierzach.</span>
+<span class="sd">        </span>
+<span class="sd">        Args:</span>
+<span class="sd">            board (np.ndarray): Plansza gry.</span>
+<span class="sd">            </span>
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Ujemna wartość (kara), im mniejsza różnica, tym bliżej 0.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wersja ZWEKTORYZOWANA (Błyskawiczna).</span>
+<span class="sd">        Zamiast pętli, używamy operacji na całych macierzach.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># 1. Logarytmy (unikanie zer)</span>
+        <span class="c1"># Tworzymy maskę dla wartości &gt; 0</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">board</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="n">board_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">board</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="c1"># Log2 liczymy tylko tam, gdzie są liczby.</span>
+        <span class="c1"># Operacja wektorowa - C robi to za jednym zamachem.</span>
+        <span class="n">board_log</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+
+        <span class="n">smoothness</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># 2. Różnice w poziomie (Kolumny 0,1,2 vs 1,2,3)</span>
+        <span class="c1"># board_log[:, :-1] to cała plansza bez ostatniej kolumny</span>
+        <span class="c1"># board_log[:, 1:]  to cała plansza bez pierwszej kolumny</span>
+        <span class="c1"># Odejmujemy je od siebie równolegle</span>
+        <span class="n">diff_x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">board_log</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">board_log</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span>
+
+        <span class="c1"># Maska: liczymy tylko tam, gdzie OBA klocki są niezerowe</span>
+        <span class="n">mask_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">smoothness</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">diff_x</span><span class="p">[</span><span class="n">mask_x</span><span class="p">])</span>
+
+        <span class="c1"># 3. Różnice w pionie (Wiersze 0,1,2 vs 1,2,3)</span>
+        <span class="n">diff_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">board_log</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="n">board_log</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span>
+        <span class="n">mask_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">smoothness</span> <span class="o">-=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">diff_y</span><span class="p">[</span><span class="n">mask_y</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">smoothness</span>
+
+    <span class="k">def</span> <span class="nf">_calculate_isolation_penalty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Oblicza karę za izolowane klocki (brak identycznego sąsiada).</span>
+
+<span class="sd">        Wersja ZWEKTORYZOWANA. Sprawdza izolację bez ani jednej pętli for.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            board (np.ndarray): Plansza gry.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Liczba klocków, które nie mają żadnego pasującego sąsiada.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wersja ZWEKTORYZOWANA.</span>
+<span class="sd">        Sprawdza izolację bez ani jednej pętli for.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Tworzymy mapę boolowską &quot;czy mam sąsiada?&quot;</span>
+        <span class="n">has_neighbor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">board</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+
+        <span class="c1"># 1. Sprawdzenie poziome (Horizontal Matches)</span>
+        <span class="c1"># Czy klocek[i] == klocek[i+1] (i nie są zerami)</span>
+        <span class="n">match_h</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">board</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Jeśli nastąpiło dopasowanie, to OBA klocki mają sąsiada</span>
+        <span class="c1"># Używamy operatora |= (OR), żeby nanosić prawdę na mapę</span>
+        <span class="n">has_neighbor</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">|=</span> <span class="n">match_h</span>  <span class="c1"># Lewy klocek z pary ma sąsiada</span>
+        <span class="n">has_neighbor</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:]</span>  <span class="o">|=</span> <span class="n">match_h</span>  <span class="c1"># Prawy klocek z pary ma sąsiada</span>
+
+        <span class="c1"># 2. Sprawdzenie pionowe (Vertical Matches)</span>
+        <span class="n">match_v</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">==</span> <span class="n">board</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:])</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">board</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">has_neighbor</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span> <span class="o">|=</span> <span class="n">match_v</span> <span class="c1"># Górny klocek</span>
+        <span class="n">has_neighbor</span><span class="p">[</span><span class="mi">1</span><span class="p">:,</span> <span class="p">:]</span>  <span class="o">|=</span> <span class="n">match_v</span> <span class="c1"># Dolny klocek</span>
+
+        <span class="c1"># 3. Kto jest samotny?</span>
+        <span class="c1"># Klocek musi być niezerowy I (AND) nie mieć sąsiada</span>
+        <span class="n">isolated_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">board</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="o">~</span><span class="n">has_neighbor</span><span class="p">)</span>
+
+        <span class="c1"># Sumujemy True (True = 1, False = 0)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">isolated_mask</span><span class="p">)</span>
+
+    <span class="c1"># --- ZAKTUALIZOWANA METODA: Evaluate ---</span>
+<div class="viewcode-block" id="AIPlayer.evaluate">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.evaluate">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Główna funkcja oceny stanu planszy (V-Value).</span>
+<span class="sd">        </span>
+<span class="sd">        Dynamicznie przełącza się między wagami NORMAL i PANIC w zależności</span>
+<span class="sd">        od liczby pustych pól (&lt; 4 to tryb paniki).</span>
+<span class="sd">        </span>
+<span class="sd">        Dodaje ręczne kary (Instynkty):</span>
+<span class="sd">        - Smoothness (Gładkość)</span>
+<span class="sd">        - Isolation (Izolacja)</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            board (np.ndarray): Plansza gry.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Wartość oceny stanu (Score).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_features</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+        <span class="n">empty_cells_count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">board</span><span class="p">[</span><span class="n">board</span> <span class="o">==</span> <span class="mi">0</span><span class="p">])</span>
+
+        <span class="c1"># --- WYBÓR MÓZGU ---</span>
+        <span class="k">if</span> <span class="n">empty_cells_count</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="c1"># === TRYB PANIKI ===</span>
+            <span class="c1"># Używamy wag dedykowanych do ratowania sytuacji</span>
+            <span class="n">base_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
+
+            <span class="c1"># Instynkty w panice (z poprzedniego kroku)</span>
+            <span class="n">smoothness_weight</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="c1">#wzrost z 0.8 do 15</span>
+            <span class="c1">#wzrost z 2.0 do 80</span>
+            <span class="n">isolation_weight</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># === TRYB NORMALNY ===</span>
+            <span class="c1"># Używamy wag do budowania wyniku</span>
+            <span class="n">base_score</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
+
+            <span class="c1"># Instynkty w spokoju</span>
+            <span class="c1">#wzrost z 0.1 do 3</span>
+            <span class="c1">#wzrost z 0.5 do 15</span>
+            <span class="n">smoothness_weight</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">isolation_weight</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="c1"># Obliczenie instynktów (Smoothness + Isolation)</span>
+        <span class="n">smoothness</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_smoothness</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+        <span class="n">isolation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_isolation_penalty</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+
+        <span class="n">final_score</span> <span class="o">=</span> <span class="n">base_score</span> <span class="o">+</span> \
+                      <span class="p">(</span><span class="n">smoothness</span> <span class="o">*</span> <span class="n">smoothness_weight</span><span class="p">)</span> <span class="o">-</span> \
+                      <span class="p">(</span><span class="n">isolation</span> <span class="o">*</span> <span class="n">isolation_weight</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">final_score</span></div>
+
+
+<div class="viewcode-block" id="AIPlayer.update_weights">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.update_weights">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">update_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">features_state</span><span class="p">,</span> <span class="n">td_error</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Aktualizuje wagi sieci (TD-Learning Update) w zależności od fazy gry.</span>
+<span class="sd">        </span>
+<span class="sd">        Decyduje, który zestaw wag (Normal czy Panic) przyczynił się do wyniku</span>
+<span class="sd">        i aktualizuje tylko ten zestaw.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            features_state (np.ndarray): Wektor cech stanu przed ruchem.</span>
+<span class="sd">            td_error (float): Błąd predykcji czasowej (Target - Prediction).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># Odzyskujemy liczbę pustych pól z cech (cecha nr 0 to znormalizowane puste pola)</span>
+        <span class="c1"># features[0] = empty_count / 16.0</span>
+        <span class="n">empty_ratio</span> <span class="o">=</span> <span class="n">features_state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">empty_count</span> <span class="o">=</span> <span class="n">empty_ratio</span> <span class="o">*</span> <span class="mf">16.0</span>
+
+        <span class="n">td_error_clipped</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">td_error</span><span class="p">,</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> <span class="n">td_error_clipped</span> <span class="o">*</span> <span class="n">features_state</span>
+
+        <span class="c1"># --- DECYZJA: Który mózg się uczył? ---</span>
+        <span class="c1"># Musimy użyć progu np. 3.99 zamiast 4, żeby uniknąć błędów zmiennoprzecinkowych</span>
+        <span class="k">if</span> <span class="n">empty_count</span> <span class="o">&lt;</span> <span class="mf">3.99</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">+=</span> <span class="n">delta</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AIPlayer.get_expected_value">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.get_expected_value">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">get_expected_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Oblicza wartość oczekiwaną stanu (Expectimax 1-step).</span>
+<span class="sd">        </span>
+<span class="sd">        Symuluje losowe pojawienie się kafelka (2 lub 4) w wolnych miejscach</span>
+<span class="sd">        i uśrednia wynik oceny dla tych możliwości.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            board (np.ndarray): Stan planszy PO ruchu gracza (przed pojawieniem się losowego kafelka).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Uśredniona wartość oceny stanu.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">empty_cells</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">board</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">empty_cells</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">empty_cells</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="c1"># Losujemy 3 próbki dla szybkości</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">empty_cells</span><span class="p">),</span> <span class="mi">3</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">sample_cells</span> <span class="o">=</span> <span class="p">[</span><span class="n">empty_cells</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sample_cells</span> <span class="o">=</span> <span class="n">empty_cells</span>
+
+        <span class="n">total_val</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sample_cells</span><span class="p">:</span>
+            <span class="c1"># 2 (90%)</span>
+            <span class="n">board</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="n">v2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+            <span class="c1"># 4 (10%)</span>
+            <span class="n">board</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">4</span>
+            <span class="n">v4</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">board</span><span class="p">)</span>
+            <span class="n">board</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># Backtrack</span>
+
+            <span class="n">total_val</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">0.9</span> <span class="o">*</span> <span class="n">v2</span> <span class="o">+</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">v4</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">total_val</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">sample_cells</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AIPlayer.save_model">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.save_model">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">episode_count</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Zapisuje stan AI (wagi obu mózgów) do pliku pickle.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename (str): Ścieżka do pliku.</span>
+<span class="sd">            episode_count (int): Numer aktualnego epizodu treningu.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;weights_normal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span><span class="p">,</span>
+            <span class="s1">&#39;weights_panic&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span><span class="p">,</span>
+            <span class="s1">&#39;episode&#39;</span><span class="p">:</span> <span class="n">episode_count</span>
+        <span class="p">}</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--&gt; Zapisano checkpoint (Epizod: </span><span class="si">{</span><span class="n">episode_count</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AIPlayer.load_model">
+<a class="viewcode-back" href="../index.html#ai_player.AIPlayer.load_model">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Wczytuje stan AI z pliku. Obsługuje wsteczną kompatybilność.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            filename (str): Ścieżka do pliku.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            int: Numer wczytanego epizodu (lub 0 jeśli błąd/brak pliku).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="c1"># Obsługa wstecznej kompatybilności (gdyby stary plik miał tylko &#39;weights&#39;)</span>
+                <span class="k">if</span> <span class="s1">&#39;weights_normal&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weights_normal&#39;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weights_panic&#39;</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Stary save -&gt; przypisz stary zestaw do obu</span>
+                    <span class="n">old_weights</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;weights&#39;</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">weights_normal</span> <span class="o">=</span> <span class="n">old_weights</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">weights_panic</span> <span class="o">=</span> <span class="n">old_weights</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Konwersja starego zapisu na Dual-Weights...&quot;</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;episode&#39;</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Błąd odczytu zapisu: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

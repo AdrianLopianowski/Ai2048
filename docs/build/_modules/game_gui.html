@@ -1,0 +1,556 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="pl" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>game_gui &mdash; 2048 ai project 1.0 - dokumentacja</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=331e28ce"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script src="../_static/translations.js?v=2827c288"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Indeks" href="../genindex.html" />
+    <link rel="search" title="Szukaj" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            2048 ai project
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Szukaj" aria-label="Szukaj" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">2048 ai project</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Kod modułu</a></li>
+      <li class="breadcrumb-item active">game_gui</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Kod źródłowy modułu game_gui</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+<span class="kn">from</span> <span class="nn">game_2048</span> <span class="kn">import</span> <span class="n">Game2048</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">ai_player</span> <span class="kn">import</span> <span class="n">AIPlayer</span>
+<span class="kn">from</span> <span class="nn">benchmark_module</span> <span class="kn">import</span> <span class="n">Benchmark</span>
+<span class="kn">import</span> <span class="nn">threading</span> <span class="c1"># Żeby GUI nie zamarzło na amen (choć przy update może migać)</span>
+
+<div class="viewcode-block" id="Game2048App">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App">[dokumentacja]</a>
+<span class="k">class</span> <span class="nc">Game2048App</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Aplikacja GUI do gry 2048 oparta na bibliotece Tkinter.</span>
+
+<span class="sd">    Integruje manualną rozgrywkę z automatycznym graczem (AI) oraz</span>
+<span class="sd">    umożliwia uruchamianie benchmarków w tle.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        root (tk.Tk): Główny obiekt okna Tkinter.</span>
+<span class="sd">        game (Game2048): Instancja logiki gry.</span>
+<span class="sd">        ai (AIPlayer): Instancja sztucznej inteligencji.</span>
+<span class="sd">        canvas (tk.Canvas): Płótno do rysowania kafelków.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span> <span class="o">=</span> <span class="n">root</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game</span> <span class="o">=</span> <span class="n">Game2048</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>
+
+        <span class="c1"># --- DODANO: Inicjalizacja AI ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai</span> <span class="o">=</span> <span class="n">AIPlayer</span><span class="p">()</span>
+
+        <span class="c1"># Próba wczytania modelu</span>
+        <span class="n">loaded_episode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">load_model</span><span class="p">(</span><span class="s2">&quot;ai_2048_save.pkl&quot;</span><span class="p">)</span>
+
+        <span class="c1"># --- TEST PRAWDY: Co siedzi w głowie AI? ---</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">loaded_episode</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;✅ SUKCES: Wczytano WYTRENOWANY model (Epizod </span><span class="si">{</span><span class="n">loaded_episode</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;⚠️ UWAGA: Gram na DOMYŚLNYCH ustawieniach (Brak pliku)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Wyświetlamy oba zestawy wag (Dual-Weights)</span>
+        <span class="c1"># Dzięki temu widzisz, czy AI ma &quot;dwubiegunowość&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🧠 Wagi NORMAL (Spokój): </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_normal</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;🔥 Wagi PANIC  (Kryzys): </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">weights_panic</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">40</span><span class="p">)</span>
+        <span class="c1"># -------------------------------------------</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sim_game</span> <span class="o">=</span> <span class="n">Game2048</span><span class="p">(</span><span class="n">size</span><span class="p">)</span>  <span class="c1"># Do symulacji ruchów</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;2048 - Tkinter (AI Dual-Mode)&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">resizable</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># --- Konfiguracja i stałe ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span> <span class="o">=</span> <span class="mi">12</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">CANVAS_SIZE</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">BG_COLOR</span> <span class="o">=</span> <span class="s1">&#39;#bbada0&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span> <span class="o">=</span> <span class="s1">&#39;#faf8ef&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TILE_COLORS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_colors</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation_in_progress</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">main_container</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span><span class="p">)</span>
+        <span class="n">main_container</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">score_frame</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">score_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;top&quot;</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+
+        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">score_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;WYNIK:&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Helvetica&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">score_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Helvetica&#39;</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_label</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Canvas</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span>
+                                <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CANVAS_SIZE</span><span class="p">,</span>
+                                <span class="n">height</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CANVAS_SIZE</span><span class="p">,</span>
+                                <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">BG_COLOR</span><span class="p">,</span>
+                                <span class="n">highlightthickness</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_objects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">ctrl_frame</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">main_container</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">GAME_FRAME_BG</span><span class="p">)</span>
+        <span class="n">ctrl_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_controls</span><span class="p">(</span><span class="n">ctrl_frame</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Key&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_grid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">(</span><span class="n">animate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+
+
+    <span class="c1"># --- KONFIGURACJA KOLORÓW ---</span>
+    <span class="k">def</span> <span class="nf">_get_colors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="mi">0</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#cdc1b4&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">2</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#eee4da&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">4</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#ede0c8&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;#776e65&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">8</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#f2b179&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">16</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#f59563&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">32</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#f67c5f&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">64</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#f65e3b&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">32</span><span class="p">},</span>
+            <span class="mi">128</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#edcf72&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">},</span>
+            <span class="mi">256</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#edcc61&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">},</span>
+            <span class="mi">512</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#edc850&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">28</span><span class="p">},</span>
+            <span class="mi">1024</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#edc53f&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">},</span>
+            <span class="mi">2048</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#edc22e&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">},</span>
+            <span class="mi">4096</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#a2d149&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">},</span>
+            <span class="mi">8192</span><span class="p">:</span> <span class="p">{</span><span class="s1">&#39;bg&#39;</span><span class="p">:</span> <span class="s1">&#39;#3c3a32&#39;</span><span class="p">,</span> <span class="s1">&#39;fg&#39;</span><span class="p">:</span> <span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="s1">&#39;font_size&#39;</span><span class="p">:</span> <span class="mi">24</span><span class="p">}</span>
+        <span class="p">}</span>
+
+    <span class="c1"># --- TWORZENIE KONTROLEK ---</span>
+    <span class="k">def</span> <span class="nf">_create_controls</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctrl_frame</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restart_btn</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">ctrl_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;🔄 Restart&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">restart_game</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#8f7a66&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">activebackground</span><span class="o">=</span><span class="s2">&quot;#a68a72&quot;</span><span class="p">,</span> <span class="n">activeforeground</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">relief</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">restart_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># --- Przycisk AI ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">ctrl_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;🤖 Gra AI&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">toggle_ai</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#4CAF50&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">activebackground</span><span class="o">=</span><span class="s2">&quot;#45a049&quot;</span><span class="p">,</span> <span class="n">activeforeground</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">relief</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit_btn</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">ctrl_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;❌ Wyjście&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">destroy</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#8f7a66&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">activebackground</span><span class="o">=</span><span class="s2">&quot;#a68a72&quot;</span><span class="p">,</span> <span class="n">activeforeground</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">relief</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span> <span class="n">bd</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quit_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="s2">&quot;left&quot;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># W sekcji gdzie masz inne przyciski (np. ctrl_frame)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_1k</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">ctrl_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Test&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">start_1k_benchmark</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;purple&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_1k</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+    <span class="c1"># --- RYSOWANIE SIATKI ---</span>
+<div class="viewcode-block" id="Game2048App.draw_grid">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.draw_grid">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">draw_grid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rysuje puste tło siatki gry.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">x1</span><span class="p">,</span> <span class="n">y1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coords</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+                <span class="n">x2</span> <span class="o">=</span> <span class="n">x1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span>
+                <span class="n">y2</span> <span class="o">=</span> <span class="n">y1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">create_rectangle</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">x2</span><span class="p">,</span> <span class="n">y2</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;#cdc1b4&#39;</span><span class="p">,</span> <span class="n">outline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- NARZĘDZIA KOORDYNATÓW ---</span>
+    <span class="k">def</span> <span class="nf">_get_coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">col</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">row</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PADDING</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="c1"># --- RYSOWANIE KAFELKA ---</span>
+    <span class="k">def</span> <span class="nf">_draw_tile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">tile_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_new</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rysuje pojedynczy kafelek na płótnie.&quot;&quot;&quot;</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coords</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_COLORS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_COLORS</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">tile_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">find_withtag</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_</span><span class="si">{</span><span class="n">tile_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_</span><span class="si">{</span><span class="n">tile_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">rect_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">create_rectangle</span><span class="p">(</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span><span class="p">,</span>
+            <span class="n">fill</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="s1">&#39;bg&#39;</span><span class="p">],</span> <span class="n">outline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+            <span class="n">tags</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;tile_</span><span class="si">{</span><span class="n">tile_id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">tile_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;new_tile&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">text_content</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">text_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">create_text</span><span class="p">(</span>
+            <span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="n">text_content</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="s1">&#39;fg&#39;</span><span class="p">],</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s1">&#39;Helvetica&#39;</span><span class="p">,</span> <span class="n">colors</span><span class="p">[</span><span class="s1">&#39;font_size&#39;</span><span class="p">],</span> <span class="s1">&#39;bold&#39;</span><span class="p">),</span>
+            <span class="n">tags</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;tile_</span><span class="si">{</span><span class="n">tile_id</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">if</span> <span class="n">tile_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;new_tile&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">tile_id</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tile_count</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">tile_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tile_count</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tile_objects</span><span class="p">[</span><span class="n">tile_id</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">value</span><span class="p">,</span> <span class="n">rect_id</span><span class="p">,</span> <span class="n">text_id</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">tag_raise</span><span class="p">(</span><span class="n">rect_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">tag_raise</span><span class="p">(</span><span class="n">text_id</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tile_id</span>
+
+    <span class="c1"># --- ANIMACJA ---</span>
+<div class="viewcode-block" id="Game2048App.animate_move">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.animate_move">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">animate_move</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">start_pos</span><span class="p">,</span> <span class="n">end_pos</span><span class="p">,</span> <span class="n">tile_id</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Prosta animacja przesunięcia kafelka (obecnie nieużywana w głównym loopie dla wydajności).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">animation_in_progress</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">animation_in_progress</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="n">start_x</span><span class="p">,</span> <span class="n">start_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coords</span><span class="p">(</span><span class="n">start_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">start_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">end_x</span><span class="p">,</span> <span class="n">end_y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_coords</span><span class="p">(</span><span class="n">end_pos</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">end_pos</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="n">bbox</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">bbox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tile_objects</span><span class="p">[</span><span class="n">tile_id</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">current_x</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="n">current_y</span> <span class="o">=</span> <span class="p">(</span><span class="n">bbox</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">bbox</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">TILE_SIZE</span> <span class="o">/</span> <span class="mi">2</span>
+
+        <span class="n">dx</span> <span class="o">=</span> <span class="n">end_x</span> <span class="o">-</span> <span class="n">current_x</span>
+        <span class="n">dy</span> <span class="o">=</span> <span class="n">end_y</span> <span class="o">-</span> <span class="n">current_y</span>
+
+        <span class="n">steps</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">duration</span> <span class="o">//</span> <span class="n">steps</span>
+
+        <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="n">current_step</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">current_step</span> <span class="o">&lt;</span> <span class="n">steps</span><span class="p">:</span>
+                <span class="n">move_x</span> <span class="o">=</span> <span class="n">dx</span> <span class="o">/</span> <span class="n">steps</span>
+                <span class="n">move_y</span> <span class="o">=</span> <span class="n">dy</span> <span class="o">/</span> <span class="n">steps</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;tile_</span><span class="si">{</span><span class="n">tile_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">move_x</span><span class="p">,</span> <span class="n">move_y</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="n">delay</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">step</span><span class="p">(</span><span class="n">current_step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">animation_in_progress</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">(</span><span class="n">animate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="n">step</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- ODSWIEŻANIE PLANSZY ---</span>
+<div class="viewcode-block" id="Game2048App.update_board">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.update_board">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">update_board</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">animate</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Rysuje całą planszę na nowo na podstawie stanu `game.board`.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">score</span><span class="p">))</span>
+
+        <span class="n">new_tile_objects</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;all&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">draw_grid</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_objects</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_count</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
+                <span class="n">value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">board</span><span class="p">[</span><span class="n">r</span><span class="p">][</span><span class="n">c</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">value</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">tile_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_draw_tile</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+                    <span class="n">new_tile_objects</span><span class="p">[(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">)]</span> <span class="o">=</span> <span class="n">tile_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">tile_objects</span> <span class="o">=</span> <span class="n">new_tile_objects</span></div>
+
+
+    <span class="c1"># --- HANDLER KLUCZY ---</span>
+<div class="viewcode-block" id="Game2048App.key_handler">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.key_handler">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">key_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Obsługuje zdarzenia klawiatury (strzałki, WASD).&quot;&quot;&quot;</span>
+        <span class="c1"># Blokada klawiszy gdy gra AI</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">animation_in_progress</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Up&#39;</span><span class="p">:</span> <span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;Down&#39;</span><span class="p">:</span> <span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;Left&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;Right&#39;</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;w&#39;</span><span class="p">:</span> <span class="s1">&#39;up&#39;</span><span class="p">,</span> <span class="s1">&#39;s&#39;</span><span class="p">:</span> <span class="s1">&#39;down&#39;</span><span class="p">,</span> <span class="s1">&#39;a&#39;</span><span class="p">:</span> <span class="s1">&#39;left&#39;</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">:</span> <span class="s1">&#39;right&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">keysym</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mapping</span> <span class="ow">and</span> <span class="n">event</span><span class="o">.</span><span class="n">char</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">char</span>
+
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">mapping</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_popup</span><span class="p">()</span></div>
+
+
+    <span class="c1"># --- RESET GRY ---</span>
+<div class="viewcode-block" id="Game2048App.restart_game">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.restart_game">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">restart_game</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Resetuje grę i interfejs.&quot;&quot;&quot;</span>
+        <span class="c1"># Stop AI przy restarcie</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;🤖 Gra AI&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#4CAF50&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Key&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key_handler</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">(</span><span class="n">animate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- GAME OVER POPUP ---</span>
+<div class="viewcode-block" id="Game2048App.show_popup">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.show_popup">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">show_popup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Wyświetla okienko końca gry.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="n">popup</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Koniec gry&quot;</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">resizable</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">transient</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">grab_set</span><span class="p">()</span>
+
+        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">popup</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Koniec gry!&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">padx</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">popup</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Wynik: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="n">btn</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">popup</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;🔄 Restart&quot;</span><span class="p">,</span>
+            <span class="n">font</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;Helvetica&quot;</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="s2">&quot;bold&quot;</span><span class="p">),</span>
+            <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#8f7a66&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">,</span>
+            <span class="n">activebackground</span><span class="o">=</span><span class="s2">&quot;#a68a72&quot;</span><span class="p">,</span>
+            <span class="n">relief</span><span class="o">=</span><span class="s2">&quot;flat&quot;</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="p">(</span><span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">restart_game</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="n">btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_over_popup</span> <span class="o">=</span> <span class="n">popup</span></div>
+
+
+
+    <span class="c1"># --- METODY AI ---</span>
+<div class="viewcode-block" id="Game2048App.toggle_ai">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.toggle_ai">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">toggle_ai</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Włącza lub wyłącza automatycznego gracza.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span><span class="p">:</span>
+            <span class="c1"># Zatrzymaj</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;🤖 Gra AI&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#4CAF50&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Uruchom</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;⏹ Stop AI&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#f44336&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">run_ai_step</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Game2048App.run_ai_step">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.run_ai_step">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">run_ai_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pojedynczy krok pętli AI wywoływany cyklicznie przez `after`.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;🤖 Gra AI&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#4CAF50&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># 1. Pobierz dostępne ruchy</span>
+        <span class="n">valid_moves</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">get_valid_moves</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_moves</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_popup</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="c1"># 2. Wybierz najlepszy ruch (1-step Lookahead)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">board</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">best_move</span><span class="p">,</span> <span class="n">best_v</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="o">-</span><span class="nb">float</span><span class="p">(</span><span class="s1">&#39;inf&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">move</span> <span class="ow">in</span> <span class="n">valid_moves</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sim_game</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="c1"># AI używa move_without_random, by zobaczyć przyszły stan</span>
+            <span class="n">next_s_sim</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sim_game</span><span class="o">.</span><span class="n">move_without_random</span><span class="p">(</span><span class="n">move</span><span class="p">)</span>
+
+            <span class="c1"># AIPlayer (get_expected_value -&gt; evaluate) sam decyduje,</span>
+            <span class="c1"># których wag (Normal/Panic) użyć na podstawie planszy next_s_sim</span>
+            <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="o">.</span><span class="n">get_expected_value</span><span class="p">(</span><span class="n">next_s_sim</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="n">best_v</span><span class="p">:</span>
+                <span class="n">best_v</span> <span class="o">=</span> <span class="n">v</span>
+                <span class="n">best_move</span> <span class="o">=</span> <span class="n">move</span>
+
+        <span class="c1"># 3. Wykonaj ruch w prawdziwej grze</span>
+        <span class="k">if</span> <span class="n">best_move</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">done</span><span class="p">,</span> <span class="n">changed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">best_move</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">changed</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">(</span><span class="n">animate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">done</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ai_running</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ai_btn</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;🤖 Gra AI&quot;</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;#4CAF50&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_over_shown</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">show_popup</span><span class="p">()</span>
+                <span class="k">return</span>
+
+        <span class="c1"># 4. Zaplanuj kolejny krok (50ms)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">run_ai_step</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Game2048App.start_1k_benchmark">
+<a class="viewcode-back" href="../index.html#game_gui.Game2048App.start_1k_benchmark">[dokumentacja]</a>
+    <span class="k">def</span> <span class="nf">start_1k_benchmark</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Uruchamia benchmark w oddzielnym wątku.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">btn_1k</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pracuję...&quot;</span><span class="p">)</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_run_benchmark_thread</span><span class="p">,</span> <span class="n">daemon</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">start</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span> <span class="nf">_run_benchmark_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">bench</span> <span class="o">=</span> <span class="n">Benchmark</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ai</span><span class="p">)</span>
+
+        <span class="c1"># ZMIANA: Callback przyjmuje teraz current_score</span>
+        <span class="k">def</span> <span class="nf">visual_update</span><span class="p">(</span><span class="n">final_board</span><span class="p">,</span> <span class="n">current_game</span><span class="p">,</span> <span class="n">total_games</span><span class="p">,</span> <span class="n">current_score</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_gui_for_benchmark</span><span class="p">(</span><span class="n">final_board</span><span class="p">,</span> <span class="n">current_game</span><span class="p">,</span> <span class="n">total_games</span><span class="p">,</span> <span class="n">current_score</span><span class="p">))</span>
+
+        <span class="n">bench</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">update_gui_callback</span><span class="o">=</span><span class="n">visual_update</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">btn_1k</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;1kAVG&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">score_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Koniec&quot;</span><span class="p">,</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_update_gui_for_benchmark</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">board</span><span class="p">,</span> <span class="n">current</span><span class="p">,</span> <span class="n">total</span><span class="p">,</span> <span class="n">current_score</span><span class="p">):</span>
+        <span class="c1"># Aktualizacja wizualna planszy</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">board</span> <span class="o">=</span> <span class="n">board</span>
+        <span class="c1"># Ważne: musimy ręcznie ustawić self.game.score, żeby update_board wyświetlił dobry wynik</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">current_score</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_board</span><span class="p">(</span><span class="n">animate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+        <span class="c1"># Dodatkowo wymuszamy aktualizację labela (dla pewności, choć update_board to robi)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">score_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">current_score</span><span class="p">),</span> <span class="n">fg</span><span class="o">=</span><span class="s1">&#39;#776e65&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Tytuł okna pokazuje postęp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Benchmark: Gra </span><span class="si">{</span><span class="n">current</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">update_idletasks</span><span class="p">()</span></div>
+
+
+
+<span class="c1"># --------------- program start ---------------</span>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">Game2048App</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Prawa zastrzeżone 2026, Jakub Studziński, Aleksander Bojko, Sergiusz Aniśko, Adrian Łopianowski.</p>
+  </div>
+
+  Zbudowano w <a href="https://www.sphinx-doc.org/">Sphinx</a> używając
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    dostarczone przez <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
